@@ -5,17 +5,29 @@ import { Initializable } from "@openzeppelin/contracts-upgradeable/proxy/utils/I
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { AccessManagedUpgradeable } from "@openzeppelin/contracts-upgradeable/access/manager/AccessManagedUpgradeable.sol";
 import { Address } from "@openzeppelin/contracts/utils/Address.sol";
+
 import { IZkTLSDAppCallback } from "./interfaces/IZkTLSDAppCallback.sol";
 import { ZkTLSGateway } from "./ZkTlsGateway.sol";
+import { IZkTLSAccount } from "./interfaces/IZkTlsAccount.sol";
 
-contract ZkTLSAccount is Initializable, AccessManagedUpgradeable {
+contract ZkTLSAccount is
+	IZkTLSAccount,
+	Initializable,
+	AccessManagedUpgradeable
+{
 	using Address for address payable;
 
+	/// @notice The static gas for a transaction
+	uint256 constant TX_STATIC_GAS = 21000;
+
+	/// @notice The gateway address
 	address public gateway;
 
+	/// @notice The payment token address
 	address public paymentToken;
 
-	uint256 paddingGas;
+	/// @notice The padding gas
+	uint256 public paddingGas;
 
 	/// @notice Which dApps are allowed to use this account
 	mapping(address => bool) public dApps;
@@ -53,6 +65,7 @@ contract ZkTLSAccount is Initializable, AccessManagedUpgradeable {
 		paddingGas = paddingGas_;
 	}
 
+	/// @notice Request a TLS call template
 	function requestTLSCallTemplate(
 		bytes32 proverId_,
 		bytes calldata requestData_,
@@ -80,23 +93,26 @@ contract ZkTLSAccount is Initializable, AccessManagedUpgradeable {
 		(uint256 nativeGas, uint256 paymentFee) = ZkTLSGateway(gateway)
 			.computeFee(proverId_, responseTemplateData_, maxResponseBytes_);
 
-		nativeGas += requestCallbackGasLimit_ + paddingGas;
+		nativeGas += requestCallbackGasLimit_ + paddingGas + TX_STATIC_GAS;
 
 		uint256 gasFee = nativeGas * expectedGasPrice_;
 		lockedToken[address(0)] += gasFee;
 
-		lockedToken[paymentToken] += paymentFee;
 		requestPaymentFee[requestId] = paymentFee;
+		lockedToken[paymentToken] += paymentFee;
 	}
 
+	/// @notice Delivery the response
+	/// @dev This function only can be called by gateway.
 	function deliveryResponse(
 		uint256 gas_,
 		bytes32 requestId_,
+		address proverBeneficiaryAddress_,
 		bytes calldata response_
 	) external {
 		require(
-			dApps[msg.sender],
-			"ZkTLSAccount: Only dApps can deliver responses"
+			msg.sender == gateway,
+			"ZkTLSAccount: Only gateway can deliver responses"
 		);
 
 		address requestFrom_ = requestFrom[requestId_];
@@ -112,17 +128,16 @@ contract ZkTLSAccount is Initializable, AccessManagedUpgradeable {
 		);
 		require(success, "ZkTLSAccount: Callback failed");
 
-		address prover = ZkTLSGateway(gateway).proverBeneficiaryAddress(
-			ZkTLSGateway(gateway).requestProverId(requestId_)
+		IERC20(paymentToken).transfer(
+			proverBeneficiaryAddress_,
+			requestPaymentFee[requestId_]
 		);
+		lockedToken[paymentToken] -= requestPaymentFee[requestId_];
 
-		IERC20(paymentToken).transfer(prover, requestPaymentFee[requestId_]);
-
-		uint256 nativeGas = gas_ - gasleft();
-		payable(prover).sendValue(nativeGas * tx.gasprice);
-		lockedToken[address(0)] -=
-			nativeGas *
-			requestExpectedGasPrice[requestId_];
+		uint256 nativeGas = gas_ - gasleft() + TX_STATIC_GAS;
+		uint256 nativeGasValue = nativeGas * tx.gasprice;
+		payable(proverBeneficiaryAddress_).sendValue(nativeGasValue);
+		lockedToken[address(0)] -= nativeGasValue;
 
 		delete requestFrom[requestId_];
 		delete requestCallbackGasLimit[requestId_];

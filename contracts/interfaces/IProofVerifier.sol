@@ -7,7 +7,7 @@ interface IProofVerifier {
 		bytes calldata proofBytes
 	) external view;
 
-	function nativeVerifyGas()
+	function verifyGas()
 		external
 		view
 		returns (uint256 nativeVerifyGas, uint256 paymentVerifyFee);

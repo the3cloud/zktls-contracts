@@ -29,6 +29,20 @@ library RequestData {
 		return RequestDataLight(encryptedOffset, fields, values);
 	}
 
+	function encodeRequestDataFull(
+		RequestDataFull memory requestData
+	) public pure returns (bytes memory) {
+		return
+			abi.encode(
+				requestData.encryptedOffset,
+				requestData.fields,
+				requestData.values,
+				requestData.remote,
+				requestData.serverName,
+				requestData.requestTemplateHash
+			);
+	}
+
 	function parseRequestDataFull(
 		bytes memory data
 	) public pure returns (RequestDataFull memory) {

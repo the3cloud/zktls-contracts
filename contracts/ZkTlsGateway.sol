@@ -11,6 +11,7 @@ import { RequestId } from "./lib/RequestId.sol";
 import { RequestData } from "./lib/RequestData.sol";
 import { IProofVerifier } from "./interfaces/IProofVerifier.sol";
 import { ZkTLSAccount } from "./ZkTLSAccount.sol";
+import { ZkTLSManager } from "./ZkTLSManager.sol";
 
 contract ZkTLSGateway is
 	IZkTLSGateway,
@@ -55,6 +56,12 @@ contract ZkTLSGateway is
 		manager = manager_;
 	}
 
+	/// @notice Set the verifier for a prover
+	/// @dev Only the manager or owner can set the verifier for a prover
+	/// @param proverId The ID of the prover
+	/// @param verifierAddress_ The address of the verifier
+	/// @param submitterAddress_ The address of the submitter
+	/// @param beneficiaryAddress_ The address of the beneficiary
 	function setProverVerifier(
 		bytes32 proverId,
 		address verifierAddress_,
@@ -72,6 +79,13 @@ contract ZkTLSGateway is
 		proverBeneficiaryAddress[proverId] = beneficiaryAddress_;
 	}
 
+	/// @notice Request a TLS call template
+    /// @dev only account can call this function.
+	/// @param proverId_ The ID of the prover
+	/// @param requestData_ The request data
+	/// @param responseTemplateData_ The response template data
+	/// @param encryptedKey_ The encrypted key
+	/// @param maxResponseBytes_ The maximum response bytes
 	function requestTLSCallTemplate(
 		bytes32 proverId_,
 		bytes calldata requestData_,
@@ -79,6 +93,11 @@ contract ZkTLSGateway is
 		bytes calldata encryptedKey_,
 		uint256 maxResponseBytes_
 	) external payable returns (bytes32 requestId) {
+		require(
+			ZkTLSManager(manager).isRegisteredAccount(msg.sender),
+			"Only registered account can request TLS call template"
+		);
+
 		requestId = RequestId.compute(msg.sender, nonce++);
 
 		requestHash[requestId] = RequestData.hash(requestData_);
@@ -95,13 +114,26 @@ contract ZkTLSGateway is
 		);
 	}
 
+	event ResponseVerified(bytes32 requestId, bytes32 requestHash);
+
+	/// @notice Delivery the response
+	/// @dev This function only can be called by prover defined by request..
+	/// @param requestId_ The ID of the request
+	/// @param requestHash_ The hash of the request
+	/// @param response_ The response
+	/// @param proof_ The proof
 	function deliveryResponse(
 		bytes32 requestId_,
 		bytes32 requestHash_,
 		bytes calldata response_,
 		bytes calldata proof_
 	) external {
-        uint256 gas = gasleft();
+		require(
+			msg.sender == proverSubmitterAddress[requestProverId[requestId_]],
+			"Only prover can delivery response"
+		);
+
+		uint256 gas = gasleft();
 
 		bytes memory receipt = abi.encode(requestHash_, response_);
 
@@ -109,9 +141,12 @@ contract ZkTLSGateway is
 
 		IProofVerifier(verifier).verifyProof(receipt, proof_);
 
+		emit ResponseVerified(requestId_, requestHash_);
+
 		ZkTLSAccount(payable(requestFromAccount[requestId_])).deliveryResponse(
 			gas,
 			requestId_,
+			beneficiaryAddressByRequestId(requestId_),
 			response_
 		);
 
@@ -127,7 +162,7 @@ contract ZkTLSGateway is
 	) public view returns (uint256 nativeGas, uint256 paymentFee) {
 		(uint256 nativeVerifyGas, uint256 paymentVerifyFee) = IProofVerifier(
 			proverVerifierAddress[proverId_]
-		).nativeVerifyGas();
+		).verifyGas();
 
 		// compute native gas
 		nativeGas = maxResponseBytes_ * 16 + nativeVerifyGas;
@@ -135,6 +170,12 @@ contract ZkTLSGateway is
 		// compute payment token gas
 		uint256 bytesWeight = 20;
 		paymentFee = paymentVerifyFee + maxResponseBytes_ * bytesWeight;
+	}
+
+	function beneficiaryAddressByRequestId(
+		bytes32 requestId_
+	) internal view returns (address) {
+		return proverBeneficiaryAddress[requestProverId[requestId_]];
 	}
 
 	function _authorizeUpgrade(

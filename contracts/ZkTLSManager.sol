@@ -12,7 +12,7 @@ import { ZkTLSAccount } from "./ZkTLSAccount.sol";
 /// @notice ZkTLS manager contract
 /// @author the3cloud
 /// This contract used to register provers and register Account.
-contract ZkTlsManager is Initializable, UUPSUpgradeable, OwnableUpgradeable {
+contract ZkTLSManager is Initializable, UUPSUpgradeable, OwnableUpgradeable {
 	address public gateway;
 
 	address public accountBeacon;
@@ -21,7 +21,7 @@ contract ZkTlsManager is Initializable, UUPSUpgradeable, OwnableUpgradeable {
 
 	address public paddingGas;
 
-	mapping(address => bool) public isAccountRegistered;
+	mapping(address => bool) public isRegisteredAccount;
 
 	event ProverRegistered(
 		bytes32 indexed proverId,
@@ -29,6 +29,8 @@ contract ZkTlsManager is Initializable, UUPSUpgradeable, OwnableUpgradeable {
 		address submitterAddress,
 		address beneficiaryAddress
 	);
+
+	event AccountRegistered(address indexed account);
 
 	/// @custom:oz-upgrades-unsafe-allow constructor
 	constructor() {
@@ -59,7 +61,9 @@ contract ZkTlsManager is Initializable, UUPSUpgradeable, OwnableUpgradeable {
 			)
 		);
 
-		isAccountRegistered[address(account)] = true;
+		isRegisteredAccount[address(account)] = true;
+
+		emit AccountRegistered(address(account));
 	}
 
 	function setAccountBeacon(address accountBeacon_) external onlyOwner {
