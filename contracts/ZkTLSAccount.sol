@@ -4,14 +4,18 @@ pragma solidity ^0.8.28;
 import { Initializable } from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { AccessManagedUpgradeable } from "@openzeppelin/contracts-upgradeable/access/manager/AccessManagedUpgradeable.sol";
-
+import { Address } from "@openzeppelin/contracts/utils/Address.sol";
 import { IZkTLSDAppCallback } from "./interfaces/IZkTLSDAppCallback.sol";
 import { ZkTLSGateway } from "./ZkTlsGateway.sol";
 
 contract ZkTLSAccount is Initializable, AccessManagedUpgradeable {
+	using Address for address payable;
+
 	address public gateway;
 
 	address public paymentToken;
+
+	uint256 paddingGas;
 
 	/// @notice Which dApps are allowed to use this account
 	mapping(address => bool) public dApps;
@@ -25,6 +29,9 @@ contract ZkTLSAccount is Initializable, AccessManagedUpgradeable {
 	/// @notice Mapping of requestId to expected gas price
 	mapping(bytes32 => uint256) public requestExpectedGasPrice;
 
+	/// @notice Mapping of requestId to payment fee
+	mapping(bytes32 => uint256) public requestPaymentFee;
+
 	/// @notice Mapping of token to locked amount
 	mapping(address => uint256) public lockedToken;
 
@@ -36,12 +43,14 @@ contract ZkTLSAccount is Initializable, AccessManagedUpgradeable {
 	function initialize(
 		address gateway_,
 		address admin_,
-		address paymentToken_
+		address paymentToken_,
+		uint256 paddingGas_
 	) public initializer {
 		__AccessManaged_init(admin_);
 
 		gateway = gateway_;
 		paymentToken = paymentToken_;
+		paddingGas = paddingGas_;
 	}
 
 	function requestTLSCallTemplate(
@@ -68,21 +77,20 @@ contract ZkTLSAccount is Initializable, AccessManagedUpgradeable {
 		requestCallbackGasLimit[requestId] = requestCallbackGasLimit_;
 		requestExpectedGasPrice[requestId] = expectedGasPrice_;
 
-		(uint256 nativeGas, uint256 paymentFee) = ZkTLSGateway(gateway).computeFee(
-			proverId_,
-			responseTemplateData_,
-			maxResponseBytes_
-		);
+		(uint256 nativeGas, uint256 paymentFee) = ZkTLSGateway(gateway)
+			.computeFee(proverId_, responseTemplateData_, maxResponseBytes_);
 
-		nativeGas += requestCallbackGasLimit_;
+		nativeGas += requestCallbackGasLimit_ + paddingGas;
 
 		uint256 gasFee = nativeGas * expectedGasPrice_;
 		lockedToken[address(0)] += gasFee;
 
 		lockedToken[paymentToken] += paymentFee;
+		requestPaymentFee[requestId] = paymentFee;
 	}
 
 	function deliveryResponse(
+		uint256 gas_,
 		bytes32 requestId_,
 		bytes calldata response_
 	) external {
@@ -94,8 +102,6 @@ contract ZkTLSAccount is Initializable, AccessManagedUpgradeable {
 		address requestFrom_ = requestFrom[requestId_];
 		require(requestFrom_ != address(0), "ZkTLSAccount: Request not found");
 
-		/// TODO: Charge fee.
-
 		uint256 gasLimit = requestCallbackGasLimit[requestId_];
 		(bool success, ) = address(requestFrom_).call{ gas: gasLimit }(
 			abi.encodeWithSelector(
@@ -105,6 +111,22 @@ contract ZkTLSAccount is Initializable, AccessManagedUpgradeable {
 			)
 		);
 		require(success, "ZkTLSAccount: Callback failed");
+
+		address prover = ZkTLSGateway(gateway).proverBeneficiaryAddress(
+			ZkTLSGateway(gateway).requestProverId(requestId_)
+		);
+
+		IERC20(paymentToken).transfer(prover, requestPaymentFee[requestId_]);
+
+		uint256 nativeGas = gas_ - gasleft();
+		payable(prover).sendValue(nativeGas * tx.gasprice);
+		lockedToken[address(0)] -=
+			nativeGas *
+			requestExpectedGasPrice[requestId_];
+
+		delete requestFrom[requestId_];
+		delete requestCallbackGasLimit[requestId_];
+		delete requestExpectedGasPrice[requestId_];
 	}
 
 	function addDApp(address dapp_) external restricted {

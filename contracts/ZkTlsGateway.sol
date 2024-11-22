@@ -10,6 +10,7 @@ import { ReentrancyGuardUpgradeable } from "@openzeppelin/contracts-upgradeable/
 import { RequestId } from "./lib/RequestId.sol";
 import { RequestData } from "./lib/RequestData.sol";
 import { IProofVerifier } from "./interfaces/IProofVerifier.sol";
+import { ZkTLSAccount } from "./ZkTLSAccount.sol";
 
 contract ZkTLSGateway is
 	IZkTLSGateway,
@@ -100,13 +101,19 @@ contract ZkTLSGateway is
 		bytes calldata response_,
 		bytes calldata proof_
 	) external {
+        uint256 gas = gasleft();
+
 		bytes memory receipt = abi.encode(requestHash_, response_);
 
 		address verifier = proverVerifierAddress[requestProverId[requestId_]];
 
 		IProofVerifier(verifier).verifyProof(receipt, proof_);
 
-		// TODO: Call account
+		ZkTLSAccount(payable(requestFromAccount[requestId_])).deliveryResponse(
+			gas,
+			requestId_,
+			response_
+		);
 
 		delete requestHash[requestId_];
 		delete requestProverId[requestId_];
@@ -115,7 +122,7 @@ contract ZkTLSGateway is
 
 	function computeFee(
 		bytes32 proverId_,
-		bytes calldata,
+		bytes calldata /* responseTemplateData_ */,
 		uint256 maxResponseBytes_
 	) public view returns (uint256 nativeGas, uint256 paymentFee) {
 		(uint256 nativeVerifyGas, uint256 paymentVerifyFee) = IProofVerifier(
