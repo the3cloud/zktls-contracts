@@ -13,13 +13,13 @@ import { ZkTLSAccount } from "./ZkTLSAccount.sol";
 /// @author the3cloud
 /// This contract used to register provers and register Account.
 contract ZkTLSManager is Initializable, UUPSUpgradeable, OwnableUpgradeable {
-	address public gateway;
-
 	address public accountBeacon;
 
 	address public paymentToken;
 
 	address public paddingGas;
+
+	address public zkTLSGateway;
 
 	mapping(address => bool) public isRegisteredAccount;
 
@@ -39,11 +39,15 @@ contract ZkTLSManager is Initializable, UUPSUpgradeable, OwnableUpgradeable {
 
 	function initialize(
 		address owner_,
+		address zkTLSGateway_,
 		address accountBeacon_,
 		address paymentToken_,
 		address paddingGas_
 	) public initializer {
 		__Ownable_init(owner_);
+		__UUPSUpgradeable_init();
+
+		zkTLSGateway = zkTLSGateway_;
 		accountBeacon = accountBeacon_;
 		paymentToken = paymentToken_;
 		paddingGas = paddingGas_;
@@ -54,7 +58,7 @@ contract ZkTLSManager is Initializable, UUPSUpgradeable, OwnableUpgradeable {
 			accountBeacon,
 			abi.encodeWithSelector(
 				ZkTLSAccount.initialize.selector,
-				gateway,
+				zkTLSGateway,
 				admin_,
 				paymentToken,
 				paddingGas
@@ -82,7 +86,7 @@ contract ZkTLSManager is Initializable, UUPSUpgradeable, OwnableUpgradeable {
 		address submitterAddress_,
 		address beneficiaryAddress_
 	) external onlyOwner {
-		ZkTLSGateway(gateway).setProverVerifier(
+		ZkTLSGateway(zkTLSGateway).setProverVerifier(
 			proverId_,
 			verifierAddress_,
 			submitterAddress_,
@@ -98,9 +102,9 @@ contract ZkTLSManager is Initializable, UUPSUpgradeable, OwnableUpgradeable {
 	}
 
 	/// @notice Set ZkTLSGateway address by owner
-	/// @param gateway_ ZkTLSGateway address
-	function setGateway(address gateway_) external onlyOwner {
-		gateway = gateway_;
+	/// @param zkTLSGateway_ ZkTLSGateway address
+	function setGateway(address zkTLSGateway_) external onlyOwner {
+		zkTLSGateway = zkTLSGateway_;
 	}
 
 	function _authorizeUpgrade(

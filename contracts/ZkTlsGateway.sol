@@ -49,10 +49,13 @@ contract ZkTLSGateway is
 		_disableInitializers();
 	}
 
-	function initialize(address owner_, address manager_) external initializer {
+	function initialize(address owner_) external initializer {
 		__Ownable_init(owner_);
 		__ReentrancyGuard_init();
+		__UUPSUpgradeable_init();
+	}
 
+	function setManager(address manager_) external onlyOwner {
 		manager = manager_;
 	}
 
