@@ -22,19 +22,20 @@ contract Deploy is Script, UpgradeableDeployer {
 		vm.startBroadcast();
 
 		Create2Deployer deployer;
-		address paymentTokenAddress;
 
 		if (deployConfig.create2DeployerAddress == address(0)) {
 			deployer = new Create2Deployer();
 			console.log("Create2Deployer deployed at", address(deployer));
+
+			deployConfig.create2DeployerAddress = address(deployer);
 		} else {
 			deployer = Create2Deployer(deployConfig.create2DeployerAddress);
 		}
 
 		if (deployConfig.paymentTokenAddress == address(0)) {
-			paymentTokenAddress = address(new The3CloudCoin(deployConfig.ownerAddress));
-		} else {
-			paymentTokenAddress = deployConfig.paymentTokenAddress;
+			deployConfig.paymentTokenAddress = address(
+				new The3CloudCoin(deployConfig.ownerAddress)
+			);
 		}
 
 		/// Deploy ZkTLSGateway
@@ -70,7 +71,7 @@ contract Deploy is Script, UpgradeableDeployer {
 					deployConfig.ownerAddress,
 					zkTLSGatewayAddress,
 					zkTLSAccountBeaconAddress,
-					paymentTokenAddress,
+					deployConfig.paymentTokenAddress,
 					deployConfig.paddingGas
 				)
 			)
@@ -80,6 +81,6 @@ contract Deploy is Script, UpgradeableDeployer {
 
 		vm.stopBroadcast();
 
-		saveContractDeployInfo(configPath());
+		saveContractDeployInfo(configPath(), deployConfig);
 	}
 }
