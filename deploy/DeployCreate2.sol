@@ -6,7 +6,7 @@ import { console } from "forge-std/console.sol";
 
 import { Create2Deployer } from "../contracts/Create2Deployer.sol";
 
-contract DeployCreate2 is Script {
+contract Deploy is Script {
 	function run() external {
 		vm.startBroadcast();
 
