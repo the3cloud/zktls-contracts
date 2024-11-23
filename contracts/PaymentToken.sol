@@ -14,7 +14,7 @@ contract The3CloudCoin is ERC20, ERC20Burnable, ERC20Pausable, Ownable, ERC20Per
         Ownable(initialOwner)
         ERC20Permit("The3CloudCoin")
     {
-        _mint(msg.sender, 9999999 * 10 ** decimals());
+        _mint(initialOwner, 9999999 * 10 ** decimals());
     }
 
     function pause() public onlyOwner {
