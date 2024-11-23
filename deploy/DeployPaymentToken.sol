@@ -4,12 +4,12 @@ pragma solidity ^0.8.28;
 import { Script } from "forge-std/Script.sol";
 import { console } from "forge-std/console.sol";
 
-import { Config } from "./Config.sol";
+import { DeployRecorder } from "./DeployRecorder.sol";
 
 import { Create2Deployer } from "../contracts/Create2Deployer.sol";
 import { The3CloudCoin } from "../contracts/PaymentToken.sol";
 
-contract Deploy is Script, Config {
+contract Deploy is Script, DeployRecorder {
 	function run() external {
 		DeployConfig memory config = getDeployConfig();
 
@@ -24,6 +24,8 @@ contract Deploy is Script, Config {
 		);
 
 		console.log("The3CloudCoin deployed at", address(the3CloudCoin));
+
+		savePaymentToken(configPath(), address(the3CloudCoin));
 
 		vm.stopBroadcast();
 	}

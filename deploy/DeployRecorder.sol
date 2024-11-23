@@ -22,6 +22,11 @@ contract DeployRecorder is Config {
 		stdToml.write(deployStr, path, ".deploy.create2_deployer_address");
 	}
 
+	function savePaymentToken(string memory path, address paymentToken) public {
+		string memory paymentTokenStr = Forge.safeVm().toString(paymentToken);
+		stdToml.write(paymentTokenStr, path, ".deploy.payment_token_address");
+	}
+
 	function saveContractDeployInfo(string memory path, DeployConfig memory deployConfig) public {
 		string memory configStr = stdToml.serialize(
 			"config",
