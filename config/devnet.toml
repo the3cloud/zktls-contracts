@@ -1,17 +1,5 @@
 [deploy]
-create2_deployer_address = "0xc775bF567D67018dfFac4E89a7Cf10f0EDd0Be93"
 owner_address = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
+payment_token_address = "0x0000000000000000000000000000000000000000"
 padding_gas = 3000
-payment_token_address = "0x3489745eff9525CCC3d8c648102FE2cf3485e228"
-
-[implementation]
-ZkTLSAccount = "0x8fC6c3c54d84801c925c254F52B7DA8482504B0C"
-ZkTLSGateway = "0xb05E8Ce322620003F645d0F8AD7ca3afe6Ca762A"
-ZkTLSManager = "0x7aee6E6ee12e5B4886acF8933208CF197d5f57ae"
-
-[proxy]
-ZkTLSGateway = "0xAedFa2caa2E819e9af3C1b58B1A0A822d01c3bE2"
-ZkTLSManager = "0x3eD5dAda8280BD6f46E315b4FD25fb73BbDFaCf5"
-
-[beacon]
-ZkTLSAccount = "0x8b4B39fD79C855b87E6128E26F069e30C0ed1a28"
+create2_deployer_address = "0x0000000000000000000000000000000000000000"
