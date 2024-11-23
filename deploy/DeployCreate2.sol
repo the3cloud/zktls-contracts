@@ -6,13 +6,17 @@ import { console } from "forge-std/console.sol";
 
 import { Create2Deployer } from "../contracts/Create2Deployer.sol";
 
-contract Deploy is Script {
+import { DeployRecorder } from "./DeployRecorder.sol";
+
+contract Deploy is Script, DeployRecorder {
 	function run() external {
 		vm.startBroadcast();
 
 		Create2Deployer deployer = new Create2Deployer();
 
 		console.log("Create2Deployer deployed at", address(deployer));
+
+		saveCreate2Deployer(configPath(), address(deployer));
 
 		vm.stopBroadcast();
 	}

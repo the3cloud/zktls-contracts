@@ -5,6 +5,8 @@ import { Config } from "./Config.sol";
 
 import { stdToml } from "forge-std/StdToml.sol";
 
+import { Forge } from "./Forge.sol";
+
 contract DeployRecorder is Config {
 	struct DeployedContract {
 		string name;
@@ -14,6 +16,11 @@ contract DeployRecorder is Config {
 	DeployedContract[] public allImplementationContracts;
 	DeployedContract[] public allProxyContracts;
 	DeployedContract[] public allBeaconContracts;
+
+	function saveCreate2Deployer(string memory path, address create2Deployer) public {
+		string memory deployStr = Forge.safeVm().toString(create2Deployer);
+		stdToml.write(deployStr, path, ".deploy.create2_deployer_address");
+	}
 
 	function saveContractDeployInfo(string memory path, DeployConfig memory deployConfig) public {
 		string memory configStr = stdToml.serialize(

@@ -5,10 +5,9 @@ import { console } from "forge-std/console.sol";
 import { VmSafe } from "forge-std/Vm.sol";
 import { stdToml } from "forge-std/StdToml.sol";
 
-contract Config {
-	address constant CHEATCODE_ADDRESS =
-		0x7109709ECfa91a80626fF3989D68f67F5b1DD12D;
+import { Forge } from "./Forge.sol";
 
+contract Config {
 	struct ImplementationConfig {
 		address ZkTLSAccount;
 		address ZkTLSGateway;
@@ -32,12 +31,12 @@ contract Config {
 	}
 
 	function configPath() public view returns (string memory) {
-		VmSafe vm = VmSafe(CHEATCODE_ADDRESS);
+		VmSafe vm = Forge.safeVm();
 		return string(abi.encodePacked("config/", vm.envString("DEPLOY_CONFIG"), ".toml"));
 	}
 
 	function getDeployConfig() public view returns (DeployConfig memory deployConfig) {
-		VmSafe vm = VmSafe(CHEATCODE_ADDRESS);
+		VmSafe vm = Forge.safeVm();
 
 		string memory file = vm.readFile(configPath());
 
@@ -48,7 +47,7 @@ contract Config {
 	}
 
 	function getImplementationConfig() public view returns (ImplementationConfig memory implementationConfig) {
-		VmSafe vm = VmSafe(CHEATCODE_ADDRESS);
+		VmSafe vm = Forge.safeVm();
 
 		string memory file = vm.readFile(configPath());
 
@@ -58,7 +57,7 @@ contract Config {
 	}
 
 	function getProxyConfig() public view returns (ProxyConfig memory proxyConfig) {
-		VmSafe vm = VmSafe(CHEATCODE_ADDRESS);
+		VmSafe vm = Forge.safeVm();
 
 		string memory file = vm.readFile(configPath());
 
@@ -67,7 +66,7 @@ contract Config {
 	}
 
 	function getBeaconConfig() public view returns (BeaconConfig memory beaconConfig) {
-		VmSafe vm = VmSafe(CHEATCODE_ADDRESS);
+		VmSafe vm = Forge.safeVm();
 
 		string memory file = vm.readFile(configPath());
 
