@@ -5,7 +5,6 @@ import { IZkTLSGateway } from "./interfaces/IZkTLSGateway.sol";
 import { Initializable } from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import { ReentrancyGuardUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
 
 import { RequestId } from "./lib/RequestId.sol";
 import { RequestData } from "./lib/RequestData.sol";
@@ -17,8 +16,7 @@ contract ZkTLSGateway is
 	IZkTLSGateway,
 	Initializable,
 	UUPSUpgradeable,
-	OwnableUpgradeable,
-	ReentrancyGuardUpgradeable
+	OwnableUpgradeable
 {
 	/// @notice Address of the zkTLS manager contract
 	address public manager;
@@ -51,7 +49,6 @@ contract ZkTLSGateway is
 
 	function initialize(address owner_) external initializer {
 		__Ownable_init(owner_);
-		__ReentrancyGuard_init();
 		__UUPSUpgradeable_init();
 	}
 
