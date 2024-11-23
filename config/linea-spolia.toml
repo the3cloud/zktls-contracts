@@ -1,5 +1,5 @@
 [deploy]
-owner_address = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
+owner_address = "0x245C6F7464B6E3843229d353a27B82213cC3Df95"
 payment_token_address = "0x0000000000000000000000000000000000000000"
 padding_gas = 3000
-create2_deployer_address = "0x0000000000000000000000000000000000000000"
+create2_deployer_address = "0x19009588ce26fD5b56DC72A494b97831d8d75BB7"
