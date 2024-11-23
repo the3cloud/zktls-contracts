@@ -5,7 +5,6 @@ import { Script } from "forge-std/Script.sol";
 import { console } from "forge-std/console.sol";
 
 import { UpgradeableDeployer } from "./UpgradeableDeployer.sol";
-import { Config } from "./Config.sol";
 
 import { Create2Deployer } from "../contracts/Create2Deployer.sol";
 import { ZkTLSGateway } from "../contracts/ZkTlsGateway.sol";
@@ -17,7 +16,7 @@ import { ERC1967Proxy } from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy
 
 contract Deploy is Script, UpgradeableDeployer {
 	function run() external {
-		Config.DeployConfig memory deployConfig = getDeployConfig();
+		DeployConfig memory deployConfig = getDeployConfig();
 
 		vm.startBroadcast();
 
