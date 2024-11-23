@@ -19,7 +19,7 @@ library RequestData {
 
 	function parseRequestDataLight(
 		bytes memory data
-	) public pure returns (RequestDataLight memory) {
+	) internal pure returns (RequestDataLight memory) {
 		(
 			uint256 encryptedOffset,
 			uint64[] memory fields,
@@ -31,7 +31,7 @@ library RequestData {
 
 	function encodeRequestDataFull(
 		RequestDataFull memory requestData
-	) public pure returns (bytes memory) {
+	) internal pure returns (bytes memory) {
 		return
 			abi.encode(
 				requestData.encryptedOffset,

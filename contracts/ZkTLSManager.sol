@@ -17,7 +17,7 @@ contract ZkTLSManager is Initializable, UUPSUpgradeable, OwnableUpgradeable {
 
 	address public paymentToken;
 
-	address public paddingGas;
+	uint256 public paddingGas;
 
 	address public zkTLSGateway;
 
@@ -42,7 +42,7 @@ contract ZkTLSManager is Initializable, UUPSUpgradeable, OwnableUpgradeable {
 		address zkTLSGateway_,
 		address accountBeacon_,
 		address paymentToken_,
-		address paddingGas_
+		uint256 paddingGas_
 	) public initializer {
 		__Ownable_init(owner_);
 		__UUPSUpgradeable_init();

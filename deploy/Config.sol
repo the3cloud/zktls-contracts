@@ -1,0 +1,34 @@
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity ^0.8.28;
+
+import { console } from "forge-std/console.sol";
+import { VmSafe } from "forge-std/Vm.sol";
+import { stdToml } from "forge-std/StdToml.sol";
+
+contract Config {
+	address constant CHEATCODE_ADDRESS =
+		0x7109709ECfa91a80626fF3989D68f67F5b1DD12D;
+
+	struct DeployConfig {
+		address ownerAddress;
+		address paymentTokenAddress;
+		uint256 paddingGas;
+		address create2DeployerAddress;
+	}
+
+	function configPath() public view returns (string memory) {
+		VmSafe vm = VmSafe(CHEATCODE_ADDRESS);
+		return string(abi.encodePacked("config/", vm.envString("DEPLOY_CONFIG"), ".toml"));
+	}
+
+	function getDeployConfig() public view returns (DeployConfig memory deployConfig) {
+		VmSafe vm = VmSafe(CHEATCODE_ADDRESS);
+
+		string memory file = vm.readFile(configPath());
+
+		deployConfig.ownerAddress = stdToml.readAddress(file, "$.deploy.owner_address");
+		deployConfig.paymentTokenAddress = stdToml.readAddress(file, "$.deploy.payment_token_address");
+		deployConfig.paddingGas = stdToml.readUint(file, "$.deploy.padding_gas");
+		deployConfig.create2DeployerAddress = stdToml.readAddress(file, "$.deploy.create2_deployer_address");
+	}
+}

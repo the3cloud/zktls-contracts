@@ -2,15 +2,84 @@
 pragma solidity ^0.8.28;
 
 import { Script } from "forge-std/Script.sol";
+import { console } from "forge-std/console.sol";
+
+import { UpgradeableDeployer } from "./UpgradeableDeployer.sol";
+import { Config } from "./Config.sol";
 
 import { Create2Deployer } from "../contracts/Create2Deployer.sol";
+import { ZkTLSGateway } from "../contracts/ZkTlsGateway.sol";
+import { ZkTLSAccount } from "../contracts/ZkTlsAccount.sol";
+import { ZkTLSManager } from "../contracts/ZkTlsManager.sol";
+import { The3CloudCoin } from "../contracts/PaymentToken.sol";
 
-contract DeployCreate2 is Script {
+import { ERC1967Proxy } from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
+
+contract Deploy is Script, UpgradeableDeployer {
 	function run() external {
+		Config.DeployConfig memory deployConfig = getDeployConfig();
+
 		vm.startBroadcast();
 
-		Create2Deployer deployer = new Create2Deployer();
+		Create2Deployer deployer;
+		address paymentTokenAddress;
+
+		if (deployConfig.create2DeployerAddress == address(0)) {
+			deployer = new Create2Deployer();
+			console.log("Create2Deployer deployed at", address(deployer));
+		} else {
+			deployer = Create2Deployer(deployConfig.create2DeployerAddress);
+		}
+
+		if (deployConfig.paymentTokenAddress == address(0)) {
+			paymentTokenAddress = address(new The3CloudCoin(deployConfig.ownerAddress));
+		} else {
+			paymentTokenAddress = deployConfig.paymentTokenAddress;
+		}
+
+		/// Deploy ZkTLSGateway
+		address zkTLSGatewayAddress = deployUUPS(
+			deployer,
+			"ZkTLSGateway",
+			type(ZkTLSGateway).creationCode,
+			abi.encodeCall(ZkTLSGateway.initialize, (deployConfig.ownerAddress))
+		);
+		console.log("ZkTLSGateway deployed at", zkTLSGatewayAddress);
+
+		/// Deploy ZkTLSAccount in Beacon
+		address zkTLSAccountBeaconAddress = deployBeacon(
+			deployer,
+			"ZkTLSAccount",
+			type(ZkTLSAccount).creationCode,
+			deployConfig.ownerAddress
+		);
+
+		console.log(
+			"ZkTLSAccount Beacon deployed at",
+			zkTLSAccountBeaconAddress
+		);
+
+		/// Deploy ZkTLSManager
+		address zkTLSManagerAddress = deployUUPS(
+			deployer,
+			"ZkTLSManager",
+			type(ZkTLSManager).creationCode,
+			abi.encodeCall(
+				ZkTLSManager.initialize,
+				(
+					deployConfig.ownerAddress,
+					zkTLSGatewayAddress,
+					zkTLSAccountBeaconAddress,
+					paymentTokenAddress,
+					deployConfig.paddingGas
+				)
+			)
+		);
+
+		console.log("ZkTLSManager deployed at", zkTLSManagerAddress);
 
 		vm.stopBroadcast();
+
+		saveContractDeployInfo(configPath());
 	}
 }
