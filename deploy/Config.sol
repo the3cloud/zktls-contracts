@@ -9,6 +9,21 @@ contract Config {
 	address constant CHEATCODE_ADDRESS =
 		0x7109709ECfa91a80626fF3989D68f67F5b1DD12D;
 
+	struct ImplementationConfig {
+		address ZkTLSAccount;
+		address ZkTLSGateway;
+		address ZkTLSManager;
+	}
+
+	struct ProxyConfig {
+		address ZkTLSGateway;
+		address ZkTLSManager;
+	}
+
+	struct BeaconConfig {
+		address ZkTLSAccount;
+	}
+
 	struct DeployConfig {
 		address ownerAddress;
 		address paymentTokenAddress;
@@ -30,5 +45,32 @@ contract Config {
 		deployConfig.paymentTokenAddress = stdToml.readAddress(file, "$.deploy.payment_token_address");
 		deployConfig.paddingGas = stdToml.readUint(file, "$.deploy.padding_gas");
 		deployConfig.create2DeployerAddress = stdToml.readAddress(file, "$.deploy.create2_deployer_address");
+	}
+
+	function getImplementationConfig() public view returns (ImplementationConfig memory implementationConfig) {
+		VmSafe vm = VmSafe(CHEATCODE_ADDRESS);
+
+		string memory file = vm.readFile(configPath());
+
+		implementationConfig.ZkTLSAccount = stdToml.readAddress(file, "$.implementation.ZkTLSAccount");
+		implementationConfig.ZkTLSGateway = stdToml.readAddress(file, "$.implementation.ZkTLSGateway");
+		implementationConfig.ZkTLSManager = stdToml.readAddress(file, "$.implementation.ZkTLSManager");
+	}
+
+	function getProxyConfig() public view returns (ProxyConfig memory proxyConfig) {
+		VmSafe vm = VmSafe(CHEATCODE_ADDRESS);
+
+		string memory file = vm.readFile(configPath());
+
+		proxyConfig.ZkTLSGateway = stdToml.readAddress(file, "$.proxy.ZkTLSGateway");
+		proxyConfig.ZkTLSManager = stdToml.readAddress(file, "$.proxy.ZkTLSManager");
+	}
+
+	function getBeaconConfig() public view returns (BeaconConfig memory beaconConfig) {
+		VmSafe vm = VmSafe(CHEATCODE_ADDRESS);
+
+		string memory file = vm.readFile(configPath());
+
+		beaconConfig.ZkTLSAccount = stdToml.readAddress(file, "$.beacon.ZkTLSAccount");
 	}
 }

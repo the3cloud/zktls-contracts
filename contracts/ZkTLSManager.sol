@@ -53,7 +53,7 @@ contract ZkTLSManager is Initializable, UUPSUpgradeable, OwnableUpgradeable {
 		paddingGas = paddingGas_;
 	}
 
-	function registerAccount(address admin_) public {
+	function registerAccount(address admin_) public returns (address) {
 		BeaconProxy account = new BeaconProxy(
 			accountBeacon,
 			abi.encodeWithSelector(
@@ -68,6 +68,8 @@ contract ZkTLSManager is Initializable, UUPSUpgradeable, OwnableUpgradeable {
 		isRegisteredAccount[address(account)] = true;
 
 		emit AccountRegistered(address(account));
+
+		return address(account);
 	}
 
 	function setAccountBeacon(address accountBeacon_) external onlyOwner {
