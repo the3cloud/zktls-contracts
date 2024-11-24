@@ -13,6 +13,7 @@ import {ZkTLSManager} from "../src/ZkTLSManager.sol";
 import {The3CloudCoin} from "../src/PaymentToken.sol";
 
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
+import {AccessManagerUpgradeable} from "@openzeppelin/contracts-upgradeable/access/manager/AccessManagerUpgradeable.sol";
 
 contract Deploy is Script, UpgradeableDeployer {
     function run() external {
@@ -50,6 +51,12 @@ contract Deploy is Script, UpgradeableDeployer {
 
         console.log("ZkTLSAccount Beacon deployed at", zkTLSAccountBeaconAddress);
 
+        address accessManagerBeaconAddress = deployBeacon(
+            deployer, "AccessManager", type(AccessManagerUpgradeable).creationCode, deployConfig.ownerAddress
+        );
+
+        console.log("AccessManager Beacon deployed at", accessManagerBeaconAddress);
+
         /// Deploy ZkTLSManager
         address zkTLSManagerAddress = deployUUPS(
             deployer,
@@ -61,6 +68,7 @@ contract Deploy is Script, UpgradeableDeployer {
                     deployConfig.ownerAddress,
                     zkTLSGatewayAddress,
                     zkTLSAccountBeaconAddress,
+                    accessManagerBeaconAddress,
                     deployConfig.paymentTokenAddress,
                     deployConfig.paddingGas
                 )

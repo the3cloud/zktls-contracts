@@ -15,30 +15,25 @@ import {AccessManager} from "@openzeppelin/contracts/access/manager/AccessManage
 
 contract Deploy is Script, Config {
     function run() external {
+        address owner = 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266;
+
+        ProxyConfig memory proxyConfig = getProxyConfig();
+
         vm.startBroadcast();
 
         /// Deploy and register mock verifier
         MockVerifier verifier = new MockVerifier();
         bytes32 proverId = keccak256("MockProver");
-        ZkTLSManager(getProxyConfig().ZkTLSManager).registerProver(
-            proverId,
-            address(verifier),
-            0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266,
-            0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
-        );
-
-        /// Deploy Manager
-        AccessManager accessManager = new AccessManager(0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266);
-
-        console.log("AccessManager deployed at", address(accessManager));
+        ZkTLSManager(proxyConfig.ZkTLSManager).registerProver(proverId, address(verifier), owner, owner);
 
         /// Register account
-        address account = ZkTLSManager(getProxyConfig().ZkTLSManager).registerAccount(address(accessManager));
+        (address account, address accessManager) = ZkTLSManager(proxyConfig.ZkTLSManager).registerAccount(owner);
 
         console.log("Account deployed at", account);
+        console.log("AccessManager deployed at", accessManager);
 
         /// Deploy example dApp
-        ExampleDApp dApp = new ExampleDApp();
+        ExampleDApp dApp = new ExampleDApp(account);
         /// Setup DApp in account.
         ZkTLSAccount(payable(account)).addDApp(address(dApp));
 

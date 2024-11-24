@@ -6,11 +6,15 @@ import {IZkTLSAccount} from "../interfaces/IZkTLSAccount.sol";
 import {RequestData} from "../lib/RequestData.sol";
 
 contract ExampleDApp is IZkTLSDAppCallback {
-    address account;
+    address public immutable account;
 
-    bytes32 constant PROVER_ID = keccak256("ExampleProver");
+    bytes32 public constant PROVER_ID = keccak256("ExampleProver");
 
     event ResponseGot(bytes32 requestId, bytes response);
+
+    constructor(address account_) {
+        account = account_;
+    }
 
     function deliveryResponse(bytes32 requestId_, bytes calldata response_) external {
         emit ResponseGot(requestId_, response_);
