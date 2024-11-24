@@ -7,8 +7,8 @@ import {AccessManagedUpgradeable} from "@openzeppelin/contracts-upgradeable/acce
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 
 import {IZkTLSDAppCallback} from "./interfaces/IZkTLSDAppCallback.sol";
-import {ZkTLSGateway} from "./ZkTlsGateway.sol";
-import {IZkTLSAccount} from "./interfaces/IZkTlsAccount.sol";
+import {ZkTLSGateway} from "./ZkTLSGateway.sol";
+import {IZkTLSAccount} from "./interfaces/IZkTLSAccount.sol";
 
 contract ZkTLSAccount is IZkTLSAccount, Initializable, AccessManagedUpgradeable {
     using Address for address payable;

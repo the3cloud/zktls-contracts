@@ -8,8 +8,8 @@ import {Config} from "./Config.sol";
 
 import {MockVerifier} from "../src/mock/MockVerifier.sol";
 import {ExampleDApp} from "../src/mock/ExampleDApp.sol";
-import {ZkTLSManager} from "../src/ZkTlsManager.sol";
-import {ZkTLSAccount} from "../src/ZkTlsAccount.sol";
+import {ZkTLSManager} from "../src/ZkTLSManager.sol";
+import {ZkTLSAccount} from "../src/ZkTLSAccount.sol";
 
 import {AccessManager} from "@openzeppelin/contracts/access/manager/AccessManager.sol";
 
