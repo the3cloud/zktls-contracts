@@ -7,9 +7,9 @@ import {console} from "forge-std/console.sol";
 import {UpgradeableDeployer} from "./UpgradeableDeployer.sol";
 
 import {Create2Deployer} from "../src/Create2Deployer.sol";
-import {ZkTLSGateway} from "../src/ZkTlsGateway.sol";
-import {ZkTLSAccount} from "../src/ZkTlsAccount.sol";
-import {ZkTLSManager} from "../src/ZkTlsManager.sol";
+import {ZkTLSGateway} from "../src/ZkTLSGateway.sol";
+import {ZkTLSAccount} from "../src/ZkTLSAccount.sol";
+import {ZkTLSManager} from "../src/ZkTLSManager.sol";
 import {The3CloudCoin} from "../src/PaymentToken.sol";
 
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
