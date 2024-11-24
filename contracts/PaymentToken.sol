@@ -30,7 +30,6 @@ contract The3CloudCoin is ERC20, ERC20Burnable, ERC20Pausable, Ownable, ERC20Per
     }
 
     // The following functions are overrides required by Solidity.
-
     function _update(address from, address to, uint256 value)
         internal
         override(ERC20, ERC20Pausable)
