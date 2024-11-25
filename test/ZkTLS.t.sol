@@ -112,7 +112,6 @@ contract ZkTLSTestLib {
         zkTLSGateway.setManager(zkTLSManagerAddress);
 
         verifier = new MockVerifier();
-        dApp = new ExampleDApp(userAccount);
     }
 }
 
@@ -126,87 +125,72 @@ contract ZkTLSTest is ZkTLSTestLib, Test {
 
     uint256 public counter;
 
-    function test_PaymentTokenDeployed() public view {
+    function test_ZkTLSDeployed() public view {
         assertEq(paymentToken.owner(), OWNER);
         assertEq(paymentToken.balanceOf(OWNER), 9999999000000000000000000);
-    }
 
-    function test_ZkTLSGatewayDeployed() public view {
         assertEq(zkTLSGateway.owner(), OWNER);
         assertEq(readImplementation(address(zkTLSGateway)), address(zkTLSGatewayImplementation));
-    }
+        assertEq(zkTLSGateway.manager(), address(zkTLSManager));
 
-    function test_ZkTLSAccountDeployed() public view {
         assertEq(UpgradeableBeacon(zkTLSAccountBeacon).implementation(), address(zkTLSAccountImplementation));
         assertEq(UpgradeableBeacon(zkTLSAccountBeacon).owner(), OWNER);
-    }
 
-    function test_AccessManagerDeployed() public view {
         assertEq(UpgradeableBeacon(accessManagerBeacon).implementation(), address(accessManagerImplementation));
         assertEq(UpgradeableBeacon(accessManagerBeacon).owner(), OWNER);
-    }
 
-    function test_ZkTLSManagerDeployed() public view {
         assertEq(zkTLSManager.owner(), OWNER);
         assertEq(readImplementation(address(zkTLSManager)), address(zkTLSManagerImplementation));
+        assertEq(zkTLSManager.accountBeacon(), address(zkTLSAccountBeacon));
+        assertEq(zkTLSManager.accessManagerBeacon(), address(accessManagerBeacon));
+        assertEq(zkTLSManager.paymentToken(), address(paymentToken));
+        assertEq(zkTLSManager.paddingGas(), PADDING_GAS);
     }
 
-    function test_RegisterVerifier() public {
+    function test_TLSCall() public {
+        /// Register Prover
         Forge.vm().prank(OWNER);
         zkTLSManager.registerProver(PROVER_ID, address(verifier), SUBMITTER, BENEFICIARY);
-    }
+        assertEq(zkTLSGateway.proverVerifierAddress(PROVER_ID), address(verifier));
+        assertEq(zkTLSGateway.proverSubmitterAddress(PROVER_ID), SUBMITTER);
+        assertEq(zkTLSGateway.proverBeneficiaryAddress(PROVER_ID), BENEFICIARY);
 
-    function test_RegisterAccount() public {
+        /// Register Account
         Forge.vm().prank(USER_ADMIN);
         (userAccount, userAccessManager) = zkTLSManager.registerAccount(USER_ADMIN);
-    }
+        assertEq(ZkTLSAccount(payable(userAccount)).gateway(), address(zkTLSGateway));
+        assertEq(ZkTLSAccount(payable(userAccount)).paymentToken(), address(paymentToken));
+        assertEq(ZkTLSAccount(payable(userAccount)).paddingGas(), PADDING_GAS);
 
-    function test_AddDApp() public {
+        /// Deploy DApp
+        dApp = new ExampleDApp(userAccount);
+        assertEq(dApp.account(), userAccount);
+
+        /// Add DApp
         Forge.vm().prank(USER_ADMIN);
         ZkTLSAccount(payable(userAccount)).addDApp(address(dApp));
-
         assertEq(ZkTLSAccount(payable(userAccount)).dApps(address(dApp)), true);
+
+        /// Transfer payment token
+        Forge.vm().prank(OWNER);
+        paymentToken.safeTransfer(address(userAccount), 1000 ether);
+        assertEq(paymentToken.balanceOf(address(userAccount)), 1000 ether);
+
+        /// Transfer ETH
+        Forge.vm().prank(USER_ADMIN);
+        Forge.vm().deal(USER_ADMIN, 0.01 ether);
+        payable(address(userAccount)).sendValue(0.01 ether);
+        assertEq(address(userAccount).balance, 0.01 ether);
+
+        /// Request TLS Call
+        Forge.vm().prank(USER_ADMIN);
+        dApp.requestTLSCallTemplate();
     }
-
-    function test_TLSRequestPrepare() public {
-        // Forge.vm().prank(OWNER);
-        // paymentToken.safeTransfer(address(userAccount), 1000 ether);
-
-        // assertEq(paymentToken.balanceOf(address(userAccount)), 1000 ether);
-
-        // Forge.vm().prank(USER_ADMIN);
-        // Forge.vm().deal(USER_ADMIN, 0.01 ether);
-        // payable(address(userAccount)).sendValue(0.01 ether);
-
-        // assertEq(address(userAccount).balance, 0.01 ether);
-    }
-
-    // function test_TLSRequest() public {
-    //     Forge.vm().prank(USER_ADMIN);
-
-    //     dApp.requestTLSCallTemplate();
-    // }
 
     function beforeTestSetup(bytes4 testSelector) public pure returns (bytes[] memory beforeTestCalldata) {
-        if (testSelector == this.test_RegisterAccount.selector) {
-            beforeTestCalldata = new bytes[](6);
-            beforeTestCalldata[0] = abi.encodePacked(this.test_PaymentTokenDeployed.selector);
-            beforeTestCalldata[1] = abi.encodePacked(this.test_ZkTLSGatewayDeployed.selector);
-            beforeTestCalldata[2] = abi.encodePacked(this.test_ZkTLSAccountDeployed.selector);
-            beforeTestCalldata[3] = abi.encodePacked(this.test_AccessManagerDeployed.selector);
-            beforeTestCalldata[4] = abi.encodePacked(this.test_ZkTLSManagerDeployed.selector);
-            beforeTestCalldata[5] = abi.encodePacked(this.test_RegisterVerifier.selector);
-        } else if (testSelector == this.test_AddDApp.selector) {
+        if (testSelector == this.test_TLSCall.selector) {
             beforeTestCalldata = new bytes[](1);
-            beforeTestCalldata[0] = abi.encodePacked(this.test_RegisterAccount.selector);
-            // } else if (testSelector == this.test_TLSRequestPrepare.selector) {
-            // beforeTestCalldata = new bytes[](1);
-            // beforeTestCalldata[0] = abi.encodePacked(this.test_AddDApp.selector);
+            beforeTestCalldata[0] = abi.encodePacked(this.test_ZkTLSDeployed.selector);
         }
-
-        // if (testSelector == this.test_TLSRequest.selector) {
-        //     beforeTestCalldata = new bytes[](1);
-        //     beforeTestCalldata[0] = abi.encodePacked(this.test_TLSRequestPrepare.selector);
-        // }
     }
 }

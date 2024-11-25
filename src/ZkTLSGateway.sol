@@ -92,7 +92,7 @@ contract ZkTLSGateway is IZkTLSGateway, Initializable, UUPSUpgradeable, OwnableU
 
         requestId = RequestId.compute(msg.sender, nonce++);
 
-        requestHash[requestId] = RequestData.hash(requestData_);
+        // requestHash[requestId] = RequestData.hash(requestData_);
         requestProverId[requestId] = proverId_;
         requestFromAccount[requestId] = msg.sender;
 

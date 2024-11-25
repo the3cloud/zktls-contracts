@@ -51,7 +51,7 @@ library RequestData {
     function hash(bytes calldata data) public pure returns (bytes32) {
         RequestDataLight memory light = parseRequestDataLight(data);
 
-        uint256 segmentLength = uint256(bytes32(data[128:160]));
+        uint256 segmentLength = uint256(bytes32(data[64:96]));
 
         bytes calldata segment = data[segmentLength:];
 

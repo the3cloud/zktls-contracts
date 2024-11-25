@@ -5,6 +5,8 @@ import {IZkTLSDAppCallback} from "../interfaces/IZkTLSDAppCallback.sol";
 import {IZkTLSAccount} from "../interfaces/IZkTLSAccount.sol";
 import {RequestData} from "../lib/RequestData.sol";
 
+import {console} from "forge-std/console.sol";
+
 contract ExampleDApp is IZkTLSDAppCallback {
     address public immutable account;
 
@@ -40,8 +42,12 @@ contract ExampleDApp is IZkTLSDAppCallback {
             requestTemplateHash: 0
         });
 
+        bytes memory encodedRequestData = RequestData.encodeRequestDataFull(requestData);
+
+        console.logBytes(encodedRequestData);
+
         IZkTLSAccount(account).requestTLSCallTemplate(
-            PROVER_ID, RequestData.encodeRequestDataFull(requestData), bytes(""), bytes(""), 1000, 30000, 5 gwei
+            PROVER_ID, encodedRequestData, bytes(""), bytes(""), 1000, 30000, 5 gwei
         );
     }
 }
