@@ -9,7 +9,7 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 contract SimpleFaucet is Ownable {
     using SafeERC20 for IERC20;
 
-    /// @notice The payment token   
+    /// @notice The payment token
     address public paymentToken;
 
     /// @notice The minimum amount of native token required to request
@@ -21,7 +21,9 @@ contract SimpleFaucet is Ownable {
     /// @notice The error thrown when the native amount is insufficient
     error InsufficientNativeAmount();
 
-    constructor(address paymentToken_, address owner_, uint256 amountPerRequest_, uint256 minNativeAmount_) Ownable(owner_) {
+    constructor(address paymentToken_, address owner_, uint256 amountPerRequest_, uint256 minNativeAmount_)
+        Ownable(owner_)
+    {
         paymentToken = paymentToken_;
         amountPerRequest = amountPerRequest_;
         minNativeAmount = minNativeAmount_;
