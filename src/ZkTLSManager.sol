@@ -73,7 +73,9 @@ contract ZkTLSManager is Initializable, UUPSUpgradeable, OwnableUpgradeable {
         account = address(
             new BeaconProxy(
                 accountBeacon,
-                abi.encodeWithSelector(ZkTLSAccount.initialize.selector, zkTLSGateway, accessManager, paymentToken, paddingGas)
+                abi.encodeWithSelector(
+                    ZkTLSAccount.initialize.selector, zkTLSGateway, accessManager, paymentToken, paddingGas
+                )
             )
         );
 
