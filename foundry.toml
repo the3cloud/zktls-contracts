@@ -5,7 +5,10 @@ libs = ["lib", "dependencies"]
 
 # See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options
 
+solc = "0.8.28"
+
 fs_permissions = [{ access = "read-write", path = "config/" }]
+gas_reports = ["ZkTLSGateway", "ZkTLSAccount", "ZkTLSManager"]
 
 [dependencies]
 forge-std = "1.9.4"

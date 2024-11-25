@@ -2,9 +2,11 @@
 pragma solidity ^0.8.13;
 
 import {Test, console} from "forge-std/Test.sol";
+
 import {SimpleFaucet} from "../src/SimpleFaucet.sol";
 import {The3CloudCoin} from "../src/PaymentToken.sol";
 import {Forge} from "../script/Forge.sol";
+
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 
 contract SimpleFaucetTest is Test {
