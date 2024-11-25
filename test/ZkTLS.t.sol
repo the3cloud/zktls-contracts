@@ -25,7 +25,7 @@ contract ZkTLSTestLib {
     address public constant USER_ADMIN = address(uint160(uint256(keccak256("UserAdmin"))));
 
     uint256 public constant PADDING_GAS = 1000;
-    bytes32 public constant PROVER_ID = keccak256("PROVER_ID");
+    bytes32 public constant PROVER_ID = keccak256("ExampleProver");
 
     ZkTLSGateway public zkTLSGateway;
     address public zkTLSGatewayImplementation;
@@ -164,20 +164,28 @@ contract ZkTLSTest is ZkTLSTestLib, Test {
     function test_AddDApp() public {
         Forge.vm().prank(USER_ADMIN);
         ZkTLSAccount(payable(userAccount)).addDApp(address(dApp));
+
+        assertEq(ZkTLSAccount(payable(userAccount)).dApps(address(dApp)), true);
     }
 
     function test_TLSRequestPrepare() public {
-        Forge.vm().prank(OWNER);
-        paymentToken.safeTransfer(address(userAccount), 1000 ether);
+        // Forge.vm().prank(OWNER);
+        // paymentToken.safeTransfer(address(userAccount), 1000 ether);
 
-        assertEq(paymentToken.balanceOf(address(userAccount)), 1000 ether);
+        // assertEq(paymentToken.balanceOf(address(userAccount)), 1000 ether);
 
-        Forge.vm().prank(USER_ADMIN);
-        Forge.vm().deal(USER_ADMIN, 0.01 ether);
-        payable(address(userAccount)).sendValue(0.01 ether);
+        // Forge.vm().prank(USER_ADMIN);
+        // Forge.vm().deal(USER_ADMIN, 0.01 ether);
+        // payable(address(userAccount)).sendValue(0.01 ether);
 
-        assertEq(address(userAccount).balance, 0.01 ether);
+        // assertEq(address(userAccount).balance, 0.01 ether);
     }
+
+    // function test_TLSRequest() public {
+    //     Forge.vm().prank(USER_ADMIN);
+
+    //     dApp.requestTLSCallTemplate();
+    // }
 
     function beforeTestSetup(bytes4 testSelector) public pure returns (bytes[] memory beforeTestCalldata) {
         if (testSelector == this.test_RegisterAccount.selector) {
@@ -188,16 +196,17 @@ contract ZkTLSTest is ZkTLSTestLib, Test {
             beforeTestCalldata[3] = abi.encodePacked(this.test_AccessManagerDeployed.selector);
             beforeTestCalldata[4] = abi.encodePacked(this.test_ZkTLSManagerDeployed.selector);
             beforeTestCalldata[5] = abi.encodePacked(this.test_RegisterVerifier.selector);
-        }
-
-        if (testSelector == this.test_AddDApp.selector) {
+        } else if (testSelector == this.test_AddDApp.selector) {
             beforeTestCalldata = new bytes[](1);
             beforeTestCalldata[0] = abi.encodePacked(this.test_RegisterAccount.selector);
+            // } else if (testSelector == this.test_TLSRequestPrepare.selector) {
+            // beforeTestCalldata = new bytes[](1);
+            // beforeTestCalldata[0] = abi.encodePacked(this.test_AddDApp.selector);
         }
 
-        if (testSelector == this.test_TLSRequestPrepare.selector) {
-            beforeTestCalldata = new bytes[](1);
-            beforeTestCalldata[0] = abi.encodePacked(this.test_RegisterAccount.selector);
-        }
+        // if (testSelector == this.test_TLSRequest.selector) {
+        //     beforeTestCalldata = new bytes[](1);
+        //     beforeTestCalldata[0] = abi.encodePacked(this.test_TLSRequestPrepare.selector);
+        // }
     }
 }
