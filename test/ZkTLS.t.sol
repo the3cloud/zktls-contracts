@@ -14,6 +14,8 @@ import {ExampleDApp} from "../src/mock/ExampleDApp.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {UpgradeableBeacon} from "@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol";
 import {AccessManagerUpgradeable} from "@openzeppelin/contracts-upgradeable/access/manager/AccessManagerUpgradeable.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 
 contract ZkTLSTestLib {
     address public constant OWNER = address(uint160(uint256(keccak256("Owner"))));
@@ -115,6 +117,9 @@ contract ZkTLSTestLib {
 }
 
 contract ZkTLSTest is ZkTLSTestLib, Test {
+    using Address for address payable;
+    using SafeERC20 for The3CloudCoin;
+
     function setUp() public {
         setupContracts();
     }
@@ -161,6 +166,19 @@ contract ZkTLSTest is ZkTLSTestLib, Test {
         ZkTLSAccount(payable(userAccount)).addDApp(address(dApp));
     }
 
+    function test_TLSRequestPrepare() public {
+        Forge.vm().prank(OWNER);
+        paymentToken.safeTransfer(address(userAccount), 1000 ether);
+
+        assertEq(paymentToken.balanceOf(address(userAccount)), 1000 ether);
+
+        Forge.vm().prank(USER_ADMIN);
+        Forge.vm().deal(USER_ADMIN, 0.01 ether);
+        payable(address(userAccount)).sendValue(0.01 ether);
+
+        assertEq(address(userAccount).balance, 0.01 ether);
+    }
+
     function beforeTestSetup(bytes4 testSelector) public pure returns (bytes[] memory beforeTestCalldata) {
         if (testSelector == this.test_RegisterAccount.selector) {
             beforeTestCalldata = new bytes[](6);
@@ -173,6 +191,11 @@ contract ZkTLSTest is ZkTLSTestLib, Test {
         }
 
         if (testSelector == this.test_AddDApp.selector) {
+            beforeTestCalldata = new bytes[](1);
+            beforeTestCalldata[0] = abi.encodePacked(this.test_RegisterAccount.selector);
+        }
+
+        if (testSelector == this.test_TLSRequestPrepare.selector) {
             beforeTestCalldata = new bytes[](1);
             beforeTestCalldata[0] = abi.encodePacked(this.test_RegisterAccount.selector);
         }
