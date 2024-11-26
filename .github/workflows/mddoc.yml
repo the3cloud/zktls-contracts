@@ -32,13 +32,16 @@ jobs:
       MDBOOK_VERSION: 0.4.36
     steps:
       - uses: actions/checkout@v4
+
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
         with:
           version: nightly
+      
       - name: Build docs
         run: |
           forge doc
+          
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
