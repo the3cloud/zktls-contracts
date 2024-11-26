@@ -41,7 +41,7 @@ contract Deploy is Script, UpgradeableDeployer {
             deployer,
             "ZkTLSGateway",
             type(ZkTLSGateway).creationCode,
-            abi.encodeCall(ZkTLSGateway.initialize, (deployConfig.ownerAddress))
+            abi.encodeCall(ZkTLSGateway.initialize, (deployConfig.ownerAddress, 1 gwei))
         );
         console.log("ZkTLSGateway deployed at", zkTLSGatewayAddress);
 

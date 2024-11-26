@@ -10,10 +10,13 @@ import {ZkTLSAccount} from "../src/ZkTLSAccount.sol";
 import {The3CloudCoin} from "../src/PaymentToken.sol";
 import {MockVerifier} from "../src/mock/MockVerifier.sol";
 import {ExampleDApp} from "../src/mock/ExampleDApp.sol";
+import {RequestData} from "../src/lib/RequestData.sol";
 
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {UpgradeableBeacon} from "@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol";
 import {AccessManagerUpgradeable} from "@openzeppelin/contracts-upgradeable/access/manager/AccessManagerUpgradeable.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 
 contract ZkTLSTestLib {
     address public constant OWNER = address(uint160(uint256(keccak256("Owner"))));
@@ -23,7 +26,7 @@ contract ZkTLSTestLib {
     address public constant USER_ADMIN = address(uint160(uint256(keccak256("UserAdmin"))));
 
     uint256 public constant PADDING_GAS = 1000;
-    bytes32 public constant PROVER_ID = keccak256("PROVER_ID");
+    bytes32 public constant PROVER_ID = keccak256("ExampleProver");
 
     ZkTLSGateway public zkTLSGateway;
     address public zkTLSGatewayImplementation;
@@ -75,7 +78,7 @@ contract ZkTLSTestLib {
         paymentToken = new The3CloudCoin(OWNER);
 
         (address zkTLSGatewayAddress, address zkTLSGatewayImplementationAddress) =
-            deployUUPSUpgradeable("ZkTLSGateway", abi.encodeWithSelector(ZkTLSGateway.initialize.selector, OWNER));
+            deployUUPSUpgradeable("ZkTLSGateway", abi.encodeCall(ZkTLSGateway.initialize, (OWNER, 20)));
         zkTLSGateway = ZkTLSGateway(zkTLSGatewayAddress);
         zkTLSGatewayImplementation = zkTLSGatewayImplementationAddress;
 
@@ -110,71 +113,104 @@ contract ZkTLSTestLib {
         zkTLSGateway.setManager(zkTLSManagerAddress);
 
         verifier = new MockVerifier();
-        dApp = new ExampleDApp(userAccount);
     }
 }
 
 contract ZkTLSTest is ZkTLSTestLib, Test {
+    using Address for address payable;
+    using SafeERC20 for The3CloudCoin;
+
     function setUp() public {
         setupContracts();
     }
 
     uint256 public counter;
 
-    function test_PaymentTokenDeployed() public view {
+    function test_ZkTLSDeployed() public view {
         assertEq(paymentToken.owner(), OWNER);
         assertEq(paymentToken.balanceOf(OWNER), 9999999000000000000000000);
-    }
 
-    function test_ZkTLSGatewayDeployed() public view {
         assertEq(zkTLSGateway.owner(), OWNER);
         assertEq(readImplementation(address(zkTLSGateway)), address(zkTLSGatewayImplementation));
-    }
+        assertEq(zkTLSGateway.manager(), address(zkTLSManager));
 
-    function test_ZkTLSAccountDeployed() public view {
         assertEq(UpgradeableBeacon(zkTLSAccountBeacon).implementation(), address(zkTLSAccountImplementation));
         assertEq(UpgradeableBeacon(zkTLSAccountBeacon).owner(), OWNER);
-    }
 
-    function test_AccessManagerDeployed() public view {
         assertEq(UpgradeableBeacon(accessManagerBeacon).implementation(), address(accessManagerImplementation));
         assertEq(UpgradeableBeacon(accessManagerBeacon).owner(), OWNER);
-    }
 
-    function test_ZkTLSManagerDeployed() public view {
         assertEq(zkTLSManager.owner(), OWNER);
         assertEq(readImplementation(address(zkTLSManager)), address(zkTLSManagerImplementation));
+        assertEq(zkTLSManager.accountBeacon(), address(zkTLSAccountBeacon));
+        assertEq(zkTLSManager.accessManagerBeacon(), address(accessManagerBeacon));
+        assertEq(zkTLSManager.paymentToken(), address(paymentToken));
+        assertEq(zkTLSManager.paddingGas(), PADDING_GAS);
     }
 
-    function test_RegisterVerifier() public {
+    function test_TLSCall() public {
+        /// Register Prover
         Forge.vm().prank(OWNER);
         zkTLSManager.registerProver(PROVER_ID, address(verifier), SUBMITTER, BENEFICIARY);
-    }
+        assertEq(zkTLSGateway.proverVerifierAddress(PROVER_ID), address(verifier));
+        assertEq(zkTLSGateway.proverSubmitterAddress(PROVER_ID), SUBMITTER);
+        assertEq(zkTLSGateway.proverBeneficiaryAddress(PROVER_ID), BENEFICIARY);
 
-    function test_RegisterAccount() public {
+        /// Register Account
         Forge.vm().prank(USER_ADMIN);
         (userAccount, userAccessManager) = zkTLSManager.registerAccount(USER_ADMIN);
-    }
+        assertEq(ZkTLSAccount(payable(userAccount)).gateway(), address(zkTLSGateway));
+        assertEq(ZkTLSAccount(payable(userAccount)).paymentToken(), address(paymentToken));
+        assertEq(ZkTLSAccount(payable(userAccount)).paddingGas(), PADDING_GAS);
 
-    function test_AddDApp() public {
+        /// Deploy DApp
+        dApp = new ExampleDApp(userAccount);
+        assertEq(dApp.account(), userAccount);
+
+        /// Add DApp
         Forge.vm().prank(USER_ADMIN);
         ZkTLSAccount(payable(userAccount)).addDApp(address(dApp));
+        assertEq(ZkTLSAccount(payable(userAccount)).dApps(address(dApp)), true);
+
+        /// Transfer payment token
+        Forge.vm().prank(OWNER);
+        paymentToken.safeTransfer(address(userAccount), 1000 ether);
+        assertEq(paymentToken.balanceOf(address(userAccount)), 1000 ether);
+
+        /// Transfer ETH
+        Forge.vm().prank(USER_ADMIN);
+        Forge.vm().deal(USER_ADMIN, 0.01 ether);
+        payable(address(userAccount)).sendValue(0.01 ether);
+        assertEq(address(userAccount).balance, 0.01 ether);
+
+        /// Request TLS Call
+        Forge.vm().prank(USER_ADMIN);
+        bytes32 requestId = dApp.requestTLSCallTemplate();
+        assertEq(ZkTLSAccount(payable(userAccount)).requestFrom(requestId), address(dApp));
+        assertEq(ZkTLSAccount(payable(userAccount)).requestCallbackGasLimit(requestId), 30000);
+        assertEq(ZkTLSAccount(payable(userAccount)).requestExpectedGasPrice(requestId), 5 gwei);
+        /// TODO: Add fee and gas check
+
+        bytes memory requestBytes = RequestData.encodeRequestDataFull(dApp.buildRequestData());
+        bytes32 requestHash = RequestData.hash(requestBytes);
+        assertEq(zkTLSGateway.requestHash(requestId), requestHash);
+        assertEq(zkTLSGateway.requestProverId(requestId), PROVER_ID);
+        assertEq(zkTLSGateway.requestFromAccount(requestId), userAccount);
+
+        /// Test delivery response
+        Forge.vm().prank(SUBMITTER);
+        zkTLSGateway.deliveryResponse(requestId, requestHash, abi.encode("response"), bytes(""));
+        // TODO: Add gas check
+
+        assertEq(zkTLSGateway.requestHash(requestId), bytes32(0));
+        assertEq(zkTLSGateway.requestProverId(requestId), bytes32(0));
+        assertEq(zkTLSGateway.requestFromAccount(requestId), address(0));
     }
 
     function beforeTestSetup(bytes4 testSelector) public pure returns (bytes[] memory beforeTestCalldata) {
-        if (testSelector == this.test_RegisterAccount.selector) {
-            beforeTestCalldata = new bytes[](6);
-            beforeTestCalldata[0] = abi.encodePacked(this.test_PaymentTokenDeployed.selector);
-            beforeTestCalldata[1] = abi.encodePacked(this.test_ZkTLSGatewayDeployed.selector);
-            beforeTestCalldata[2] = abi.encodePacked(this.test_ZkTLSAccountDeployed.selector);
-            beforeTestCalldata[3] = abi.encodePacked(this.test_AccessManagerDeployed.selector);
-            beforeTestCalldata[4] = abi.encodePacked(this.test_ZkTLSManagerDeployed.selector);
-            beforeTestCalldata[5] = abi.encodePacked(this.test_RegisterVerifier.selector);
-        }
-
-        if (testSelector == this.test_AddDApp.selector) {
+        if (testSelector == this.test_TLSCall.selector) {
             beforeTestCalldata = new bytes[](1);
-            beforeTestCalldata[0] = abi.encodePacked(this.test_RegisterAccount.selector);
+            beforeTestCalldata[0] = abi.encodePacked(this.test_ZkTLSDeployed.selector);
         }
     }
 }

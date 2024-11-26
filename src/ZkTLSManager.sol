@@ -64,18 +64,13 @@ contract ZkTLSManager is Initializable, UUPSUpgradeable, OwnableUpgradeable {
     /// @notice Register account
     /// @param admin_ Admin address
     function registerAccount(address admin_) public returns (address account, address accessManager) {
-        accessManager = address(
-            new BeaconProxy(
-                accessManagerBeacon, abi.encodeWithSelector(AccessManagerUpgradeable.initialize.selector, admin_)
-            )
-        );
+        accessManager =
+            address(new BeaconProxy(accessManagerBeacon, abi.encodeCall(AccessManagerUpgradeable.initialize, (admin_))));
 
         account = address(
             new BeaconProxy(
                 accountBeacon,
-                abi.encodeWithSelector(
-                    ZkTLSAccount.initialize.selector, zkTLSGateway, accessManager, paymentToken, paddingGas
-                )
+                abi.encodeCall(ZkTLSAccount.initialize, (zkTLSGateway, accessManager, paymentToken, paddingGas))
             )
         );
 

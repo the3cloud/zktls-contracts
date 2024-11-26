@@ -51,7 +51,7 @@ library RequestData {
     function hash(bytes calldata data) public pure returns (bytes32) {
         RequestDataLight memory light = parseRequestDataLight(data);
 
-        uint256 segmentLength = uint256(bytes32(data[128:160]));
+        uint256 segmentLength = uint256(bytes32(data[96:128]));
 
         bytes calldata segment = data[segmentLength:];
 
@@ -59,8 +59,8 @@ library RequestData {
         bytes[] memory values = new bytes[](light.values.length - light.encryptedOffset);
 
         for (uint256 i = 0; i < fields.length; i++) {
-            fields[i] = light.fields[i + 1];
-            values[i] = light.values[i + 1];
+            fields[i] = light.fields[i];
+            values[i] = light.values[i];
         }
 
         return keccak256(abi.encode(light.encryptedOffset, fields, values, segment));
