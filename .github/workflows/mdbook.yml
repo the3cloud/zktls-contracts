@@ -44,7 +44,7 @@ jobs:
 
       - name: Build docs
         run: |
-          forge doc
+          forge doc -b
           
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
