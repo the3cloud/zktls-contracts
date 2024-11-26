@@ -18,3 +18,17 @@ version = "1.9.4"
 url = "https://soldeer-revisions.s3.amazonaws.com/forge-std/1_9_4_25-10-2024_14:36:59_forge-std-1.9.zip"
 checksum = "b5be24beb5e4dab5e42221b2ad1288b64c826bee5ee71b6159ba93ffe86f14d4"
 integrity = "3874463846ab995a6a9a88412913cacec6144f7605daa1af57c2d8bf3f210b13"
+
+[[dependencies]]
+name = "risc0-ethereum"
+version = "1.1.4"
+url = "https://github.com/risc0/risc0-ethereum/archive/refs/tags/v1.1.4.zip"
+checksum = "96588a5869f02b6d093f2f5c05ad2ff94b95a042959fa3c2f49e87b33b246d5d"
+integrity = "0010eaf92913e47289e7ff4a2dab91b40524a6f910a480a15d5f9203de85381d"
+
+[[dependencies]]
+name = "sp1-contracts"
+version = "3.0.0"
+url = "https://github.com/succinctlabs/sp1-contracts/archive/refs/tags/v3.0.0.zip"
+checksum = "7328b090d622166bc317d4c7b9c062bf9d23167312471a0955114b23d9f8786b"
+integrity = "82bcce4880a3da9ff819396ff48237d8e352869147fec081cb4f9cac88ade8c8"
