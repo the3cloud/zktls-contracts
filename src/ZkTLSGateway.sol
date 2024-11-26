@@ -142,13 +142,13 @@ contract ZkTLSGateway is IZkTLSGateway, Initializable, UUPSUpgradeable, OwnableU
         delete requestFromAccount[requestId_];
     }
 
-    function computeFee(bytes32 proverId_, bytes calldata, /* responseTemplateData_ */ uint256 responseBytes_)
+    function computeFee(bytes32 requestId_, bytes calldata, /* responseTemplateData_ */ uint256 responseBytes_)
         public
         view
         returns (uint256 nativeGas, uint256 paymentFee)
     {
         (uint256 nativeVerifyGas, uint256 paymentVerifyFee) =
-            IProofVerifier(proverVerifierAddress[proverId_]).verifyGas();
+            IProofVerifier(proverVerifierAddress[requestProverId[requestId_]]).verifyGas();
 
         // compute native gas
         nativeGas = responseBytes_ * 16 + nativeVerifyGas;

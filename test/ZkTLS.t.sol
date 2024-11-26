@@ -25,7 +25,7 @@ contract ZkTLSTestLib {
 
     address public constant USER_ADMIN = address(uint160(uint256(keccak256("UserAdmin"))));
 
-    uint256 public constant PADDING_GAS = 1000;
+    uint256 public constant PADDING_GAS = 1;
     bytes32 public constant PROVER_ID = keccak256("ExampleProver");
 
     ZkTLSGateway public zkTLSGateway;

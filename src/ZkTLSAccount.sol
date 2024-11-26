@@ -37,10 +37,10 @@ contract ZkTLSAccount is IZkTLSAccount, Initializable, AccessManagedUpgradeable 
     /// @notice Mapping of requestId to expected gas price
     mapping(bytes32 => uint256) public requestExpectedGasPrice;
 
-    /// @notice Mapping of requestId to payment fee
-    mapping(bytes32 => uint256) public requestPaymentFee;
+    /// @notice Mapping of requestId to payment fee.
+    /// @dev This is the fee locked in the account.
+    mapping(bytes32 => mapping(address => uint256)) public requestPaymentFeeLocked;
 
-    /// @notice Mapping of token to locked amount
     mapping(address => uint256) public lockedToken;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
@@ -81,16 +81,29 @@ contract ZkTLSAccount is IZkTLSAccount, Initializable, AccessManagedUpgradeable 
         requestExpectedGasPrice[requestId] = expectedGasPrice_;
 
         (uint256 nativeGas, uint256 paymentFee) =
-            ZkTLSGateway(gateway).computeFee(proverId_, responseTemplateData_, maxResponseBytes_);
+            ZkTLSGateway(gateway).computeFee(requestId, responseTemplateData_, maxResponseBytes_);
 
-        nativeGas += requestCallbackGasLimit_ + paddingGas + TX_STATIC_GAS;
+        {
+            nativeGas += requestCallbackGasLimit_ + paddingGas + TX_STATIC_GAS;
+            uint256 gasFee = nativeGas * expectedGasPrice_;
+            requestPaymentFeeLocked[requestId][address(0)] = gasFee;
 
-        uint256 gasFee = nativeGas * expectedGasPrice_;
-        lockedToken[address(0)] += gasFee;
+            require(address(this).balance >= lockedToken[address(0)] + gasFee, "ZkTLSAccount: Insufficient balance");
+            lockedToken[address(0)] += gasFee;
+        }
 
-        requestPaymentFee[requestId] = paymentFee;
-        lockedToken[paymentToken] += paymentFee;
+        {
+            requestPaymentFeeLocked[requestId][paymentToken] = paymentFee;
+
+            require(
+                IERC20(paymentToken).balanceOf(address(this)) >= lockedToken[paymentToken] + paymentFee,
+                "ZkTLSAccount: Insufficient balance"
+            );
+            lockedToken[paymentToken] += paymentFee;
+        }
     }
+
+    error InsufficientNativeGas(uint256 expectBalance, uint256 lockedBalance);
 
     /// @notice Delivery the response
     /// @dev This function only can be called by gateway.
@@ -111,13 +124,34 @@ contract ZkTLSAccount is IZkTLSAccount, Initializable, AccessManagedUpgradeable 
         );
         require(success, "ZkTLSAccount: Callback failed");
 
-        IERC20(paymentToken).transfer(proverBeneficiaryAddress_, requestPaymentFee[requestId_]);
-        lockedToken[paymentToken] -= requestPaymentFee[requestId_];
+        (uint256 executedNativeGas, uint256 executedPaymentFee) =
+            ZkTLSGateway(gateway).computeFee(requestId_, bytes(""), response_.length);
 
-        uint256 nativeGas = gas_ - gasleft() + TX_STATIC_GAS;
-        uint256 nativeGasValue = nativeGas * tx.gasprice;
-        payable(proverBeneficiaryAddress_).sendValue(nativeGasValue);
-        lockedToken[address(0)] -= nativeGasValue;
+        {
+            IERC20(paymentToken).transfer(proverBeneficiaryAddress_, executedPaymentFee);
+
+            uint256 paymentFee = requestPaymentFeeLocked[requestId_][paymentToken];
+            lockedToken[paymentToken] -= paymentFee;
+            delete requestPaymentFeeLocked[requestId_][paymentToken];
+        }
+
+        {
+            uint256 expectedNativeGasPrice = 0;
+
+            if (requestExpectedGasPrice[requestId_] > tx.gasprice) {
+                expectedNativeGasPrice = tx.gasprice;
+            } else {
+                expectedNativeGasPrice = requestExpectedGasPrice[requestId_];
+            }
+
+            executedNativeGas += gas_ - gasleft() + TX_STATIC_GAS;
+            uint256 nativeGasValue = executedNativeGas * expectedNativeGasPrice;
+
+            payable(proverBeneficiaryAddress_).sendValue(nativeGasValue);
+
+            lockedToken[address(0)] -= requestPaymentFeeLocked[requestId_][address(0)];
+            delete requestPaymentFeeLocked[requestId_][address(0)];
+        }
 
         delete requestFrom[requestId_];
         delete requestCallbackGasLimit[requestId_];
