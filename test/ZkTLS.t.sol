@@ -10,6 +10,7 @@ import {ZkTLSAccount} from "../src/ZkTLSAccount.sol";
 import {The3CloudCoin} from "../src/PaymentToken.sol";
 import {MockVerifier} from "../src/mock/MockVerifier.sol";
 import {ExampleDApp} from "../src/mock/ExampleDApp.sol";
+import {RequestData} from "../src/lib/RequestData.sol";
 
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {UpgradeableBeacon} from "@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol";
@@ -77,7 +78,7 @@ contract ZkTLSTestLib {
         paymentToken = new The3CloudCoin(OWNER);
 
         (address zkTLSGatewayAddress, address zkTLSGatewayImplementationAddress) =
-            deployUUPSUpgradeable("ZkTLSGateway", abi.encodeWithSelector(ZkTLSGateway.initialize.selector, OWNER));
+            deployUUPSUpgradeable("ZkTLSGateway", abi.encodeCall(ZkTLSGateway.initialize, (OWNER, 20)));
         zkTLSGateway = ZkTLSGateway(zkTLSGatewayAddress);
         zkTLSGatewayImplementation = zkTLSGatewayImplementationAddress;
 
@@ -184,7 +185,26 @@ contract ZkTLSTest is ZkTLSTestLib, Test {
 
         /// Request TLS Call
         Forge.vm().prank(USER_ADMIN);
-        dApp.requestTLSCallTemplate();
+        bytes32 requestId = dApp.requestTLSCallTemplate();
+        assertEq(ZkTLSAccount(payable(userAccount)).requestFrom(requestId), address(dApp));
+        assertEq(ZkTLSAccount(payable(userAccount)).requestCallbackGasLimit(requestId), 30000);
+        assertEq(ZkTLSAccount(payable(userAccount)).requestExpectedGasPrice(requestId), 5 gwei);
+        /// TODO: Add fee and gas check
+
+        bytes memory requestBytes = RequestData.encodeRequestDataFull(dApp.buildRequestData());
+        bytes32 requestHash = RequestData.hash(requestBytes);
+        assertEq(zkTLSGateway.requestHash(requestId), requestHash);
+        assertEq(zkTLSGateway.requestProverId(requestId), PROVER_ID);
+        assertEq(zkTLSGateway.requestFromAccount(requestId), userAccount);
+
+        /// Test delivery response
+        Forge.vm().prank(SUBMITTER);
+        zkTLSGateway.deliveryResponse(requestId, requestHash, abi.encode("response"), bytes(""));
+        // TODO: Add gas check
+
+        assertEq(zkTLSGateway.requestHash(requestId), bytes32(0));
+        assertEq(zkTLSGateway.requestProverId(requestId), bytes32(0));
+        assertEq(zkTLSGateway.requestFromAccount(requestId), address(0));
     }
 
     function beforeTestSetup(bytes4 testSelector) public pure returns (bytes[] memory beforeTestCalldata) {
