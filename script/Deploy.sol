@@ -6,11 +6,11 @@ import {console} from "forge-std/console.sol";
 
 import {UpgradeableDeployer} from "./UpgradeableDeployer.sol";
 
-import {Create2Deployer} from "../src/Create2Deployer.sol";
-import {ZkTLSGateway} from "../src/ZkTLSGateway.sol";
-import {ZkTLSAccount} from "../src/ZkTLSAccount.sol";
-import {ZkTLSManager} from "../src/ZkTLSManager.sol";
-import {The3CloudCoin} from "../src/PaymentToken.sol";
+import {Create2Deployer} from "../contracts/Create2Deployer.sol";
+import {ZkTLSGateway} from "../contracts/ZkTLSGateway.sol";
+import {ZkTLSAccount} from "../contracts/ZkTLSAccount.sol";
+import {ZkTLSManager} from "../contracts/ZkTLSManager.sol";
+import {The3CloudCoin} from "../contracts/PaymentToken.sol";
 
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {AccessManagerUpgradeable} from "@openzeppelin/contracts-upgradeable/access/manager/AccessManagerUpgradeable.sol";

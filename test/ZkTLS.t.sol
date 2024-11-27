@@ -3,13 +3,13 @@ pragma solidity ^0.8.13;
 
 import {Test, console} from "forge-std/Test.sol";
 
-import {ZkTLSGateway} from "../src/ZkTLSGateway.sol";
+import {ZkTLSGateway} from "../contracts/ZkTLSGateway.sol";
 import {Forge} from "../script/Forge.sol";
-import {ZkTLSManager} from "../src/ZkTLSManager.sol";
-import {ZkTLSAccount} from "../src/ZkTLSAccount.sol";
-import {The3CloudCoin} from "../src/PaymentToken.sol";
-import {MockVerifier} from "../src/mock/MockVerifier.sol";
-import {ExampleDApp} from "../src/mock/ExampleDApp.sol";
+import {ZkTLSManager} from "../contracts/ZkTLSManager.sol";
+import {ZkTLSAccount} from "../contracts/ZkTLSAccount.sol";
+import {The3CloudCoin} from "../contracts/PaymentToken.sol";
+import {MockVerifier} from "../contracts/mock/MockVerifier.sol";
+import {ExampleDApp} from "../contracts/mock/ExampleDApp.sol";
 
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {UpgradeableBeacon} from "@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol";

@@ -1,5 +1,5 @@
 [profile.default]
-src = "src"
+src = "contracts"
 out = "out"
 libs = ["lib", "dependencies"]
 
@@ -11,3 +11,15 @@ fs_permissions = [{ access = "read-write", path = "config/" }]
 forge-std = "1.9.4"
 "@openzeppelin-contracts-upgradeable" = "5.1.0"
 "@openzeppelin-contracts" = "5.1.0"
+
+[doc]
+out = "docs"
+title = "ZKTLS Contracts Docs"
+book = "docs/book.toml"
+ignore = [
+  "contracts/mock",
+  "contracts/Counter.sol",
+  "contracts/Create2Deployer.sol",
+  "contracts/SimpleFaucet.sol",
+  "contracts/PaymentToken.sol",
+]
