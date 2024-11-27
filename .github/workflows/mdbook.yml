@@ -40,6 +40,8 @@ jobs:
       - name: Install dependencies
         run: |
           forge soldeer install
+          cargo install mdbook-mermaid
+          cargo install mdbook-admonish
 
       - name: Build docs
         run: |
