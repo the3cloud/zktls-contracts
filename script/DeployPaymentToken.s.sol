@@ -6,8 +6,8 @@ import {console} from "forge-std/console.sol";
 
 import {DeployRecorder} from "./DeployRecorder.sol";
 
-import {Create2Deployer} from "../src/Create2Deployer.sol";
-import {The3CloudCoin} from "../src/PaymentToken.sol";
+import {Create2Deployer} from "../contracts/Create2Deployer.sol";
+import {The3CloudCoin} from "../contracts/PaymentToken.sol";
 
 contract Deploy is Script, DeployRecorder {
     function run() external {

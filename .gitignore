@@ -7,8 +7,10 @@ out/
 /broadcast/*/31337/
 /broadcast/**/dry-run/
 
-# Docs
-docs/
+# Docs - include bool.toml and assets
+docs/*
+!docs/assets
+!docs/book.toml
 
 # Dotenv file
 .env

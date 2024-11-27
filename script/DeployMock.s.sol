@@ -6,10 +6,10 @@ import {console} from "forge-std/console.sol";
 
 import {Config} from "./Config.sol";
 
-import {MockVerifier} from "../src/mock/MockVerifier.sol";
-import {ExampleDApp} from "../src/mock/ExampleDApp.sol";
-import {ZkTLSManager} from "../src/ZkTLSManager.sol";
-import {ZkTLSAccount} from "../src/ZkTLSAccount.sol";
+import {MockVerifier} from "../contracts/mock/MockVerifier.sol";
+import {ExampleDApp} from "../contracts/mock/ExampleDApp.sol";
+import {ZkTLSManager} from "../contracts/ZkTLSManager.sol";
+import {ZkTLSAccount} from "../contracts/ZkTLSAccount.sol";
 
 import {AccessManager} from "@openzeppelin/contracts/access/manager/AccessManager.sol";
 

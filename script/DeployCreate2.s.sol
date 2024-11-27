@@ -4,7 +4,7 @@ pragma solidity ^0.8.28;
 import {Script} from "forge-std/Script.sol";
 import {console} from "forge-std/console.sol";
 
-import {Create2Deployer} from "../src/Create2Deployer.sol";
+import {Create2Deployer} from "../contracts/Create2Deployer.sol";
 
 import {DeployRecorder} from "./DeployRecorder.sol";
 

@@ -1,5 +1,5 @@
 [profile.default]
-src = "src"
+src = "contracts"
 out = "out"
 libs = ["lib", "dependencies"]
 
@@ -16,3 +16,15 @@ forge-std = "1.9.4"
 "@openzeppelin-contracts" = "5.1.0"
 sp1-contracts = { version = "3.0.0", url = "https://github.com/succinctlabs/sp1-contracts/archive/refs/tags/v3.0.0.zip" }
 risc0-ethereum = { version = "1.1.4", url = "https://github.com/risc0/risc0-ethereum/archive/refs/tags/v1.1.4.zip" }
+
+[doc]
+out = "docs"
+title = "ZKTLS Contracts Docs"
+book = "docs/book.toml"
+ignore = [
+  "contracts/mock",
+  "contracts/Counter.sol",
+  "contracts/Create2Deployer.sol",
+  "contracts/SimpleFaucet.sol",
+  "contracts/PaymentToken.sol",
+]

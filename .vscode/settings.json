@@ -1,5 +1,5 @@
 {
-  "solidity.packageDefaultDependenciesContractsDirectory": "src",
+  "solidity.packageDefaultDependenciesContractsDirectory": "contracts",
   "solidity.packageDefaultDependenciesDirectory": "dependencies",
   "editor.formatOnSave": true,
   "[solidity]": {

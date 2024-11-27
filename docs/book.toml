@@ -1,0 +1,38 @@
+[book]
+src = "src"
+title = "ZKTLS Contracts Docs"
+authors = [
+    "steve@the3.cloud",
+    "franklin@the3.cloud",
+]
+language = "en"
+multilingual = false
+
+[output.html]
+no-section-label = true
+additional-js = [
+    "solidity.min.js",
+    "assets/js/mermaid.min.js",
+    "assets/js/mermaid-init.js",
+]
+additional-css = [
+    "book.css",
+    "assets/css/the3cloud.css",
+    "assets/css/mdbook-admonish.css",
+]
+git-repository-url = "https://github.com/the3cloud/zktls-contracts"
+default-theme = "light"
+preferred-dark-theme = "navy"
+smart-punctuation = true
+mathjax-support = false
+copy-fonts = true
+
+[output.html.fold]
+enable = true
+
+[preprocessor.admonish]
+command = "mdbook-admonish"
+assets_version = "3.0.2"
+
+[preprocessor.mermaid]
+command = "mdbook-mermaid"
