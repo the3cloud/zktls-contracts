@@ -5,6 +5,7 @@ import {Test, console} from "forge-std/Test.sol";
 import {SimpleFaucet} from "../contracts/SimpleFaucet.sol";
 import {The3CloudCoin} from "../contracts/PaymentToken.sol";
 import {Forge} from "../script/Forge.sol";
+
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 
 contract SimpleFaucetTest is Test {

@@ -16,6 +16,9 @@ contract ZkTLSGateway is IZkTLSGateway, Initializable, UUPSUpgradeable, OwnableU
     /// @notice Address of the zkTLS manager contract
     address public manager;
 
+    /// @notice Bytes weight
+    uint256 public bytesWeight;
+
     /// @notice Mapping of requestId to callbackInfo
     mapping(bytes32 => bytes32) public requestHash;
 
@@ -42,13 +45,19 @@ contract ZkTLSGateway is IZkTLSGateway, Initializable, UUPSUpgradeable, OwnableU
         _disableInitializers();
     }
 
-    function initialize(address owner_) external initializer {
+    function initialize(address owner_, uint256 bytesWeight_) external initializer {
         __Ownable_init(owner_);
         __UUPSUpgradeable_init();
+
+        bytesWeight = bytesWeight_;
     }
 
     function setManager(address manager_) external onlyOwner {
         manager = manager_;
+    }
+
+    function setBytesWeight(uint256 bytesWeight_) external onlyOwner {
+        bytesWeight = bytesWeight_;
     }
 
     /// @notice Set the verifier for a prover
@@ -133,7 +142,7 @@ contract ZkTLSGateway is IZkTLSGateway, Initializable, UUPSUpgradeable, OwnableU
         delete requestFromAccount[requestId_];
     }
 
-    function computeFee(bytes32 proverId_, bytes calldata, /* responseTemplateData_ */ uint256 maxResponseBytes_)
+    function computeFee(bytes32 proverId_, bytes calldata, /* responseTemplateData_ */ uint256 responseBytes_)
         public
         view
         returns (uint256 nativeGas, uint256 paymentFee)
@@ -142,11 +151,10 @@ contract ZkTLSGateway is IZkTLSGateway, Initializable, UUPSUpgradeable, OwnableU
             IProofVerifier(proverVerifierAddress[proverId_]).verifyGas();
 
         // compute native gas
-        nativeGas = maxResponseBytes_ * 16 + nativeVerifyGas;
+        nativeGas = responseBytes_ * 16 + nativeVerifyGas;
 
         // compute payment token gas
-        uint256 bytesWeight = 20;
-        paymentFee = paymentVerifyFee + maxResponseBytes_ * bytesWeight;
+        paymentFee = paymentVerifyFee + responseBytes_ * bytesWeight;
     }
 
     function beneficiaryAddressByRequestId(bytes32 requestId_) internal view returns (address) {

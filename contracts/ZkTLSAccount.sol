@@ -107,7 +107,7 @@ contract ZkTLSAccount is IZkTLSAccount, Initializable, AccessManagedUpgradeable 
 
         uint256 gasLimit = requestCallbackGasLimit[requestId_];
         (bool success,) = address(requestFrom_).call{gas: gasLimit}(
-            abi.encodeWithSelector(IZkTLSDAppCallback.deliveryResponse.selector, requestId_, response_)
+            abi.encodeCall(IZkTLSDAppCallback.deliveryResponse, (requestId_, response_))
         );
         require(success, "ZkTLSAccount: Callback failed");
 

@@ -5,6 +5,8 @@ import {IZkTLSDAppCallback} from "../interfaces/IZkTLSDAppCallback.sol";
 import {IZkTLSAccount} from "../interfaces/IZkTLSAccount.sol";
 import {RequestData} from "../lib/RequestData.sol";
 
+import {console} from "forge-std/console.sol";
+
 contract ExampleDApp is IZkTLSDAppCallback {
     address public immutable account;
 
@@ -20,7 +22,7 @@ contract ExampleDApp is IZkTLSDAppCallback {
         emit ResponseGot(requestId_, response_);
     }
 
-    function requestTLSCallTemplate() external {
+    function buildRequestData() public pure returns (RequestData.RequestDataFull memory requestData) {
         uint64[] memory fields = new uint64[](2);
         fields[0] = 25;
         fields[1] = 39;
@@ -29,8 +31,8 @@ contract ExampleDApp is IZkTLSDAppCallback {
         values[0] = "httpbin.org";
         values[1] = "Close";
 
-        RequestData.RequestDataFull memory requestData = RequestData.RequestDataFull({
-            encryptedOffset: 0,
+        requestData = RequestData.RequestDataFull({
+            encryptedOffset: 2,
             fields: fields,
             values: values,
             remote: "httpbin.org:443",
@@ -39,9 +41,17 @@ contract ExampleDApp is IZkTLSDAppCallback {
             /// "GET /get HTTP/1.1\r\nHost: \r\nConnection: \r\n\r\n"
             requestTemplateHash: 0
         });
+    }
 
-        IZkTLSAccount(account).requestTLSCallTemplate(
-            PROVER_ID, RequestData.encodeRequestDataFull(requestData), bytes(""), bytes(""), 1000, 30000, 5 gwei
+    function requestTLSCallTemplate() external returns (bytes32 requestId) {
+        RequestData.RequestDataFull memory requestData = buildRequestData();
+
+        bytes memory encodedRequestData = RequestData.encodeRequestDataFull(requestData);
+
+        console.logBytes(encodedRequestData);
+
+        requestId = IZkTLSAccount(account).requestTLSCallTemplate(
+            PROVER_ID, encodedRequestData, bytes(""), bytes(""), 1000, 30000, 5 gwei
         );
     }
 }

@@ -10,10 +10,13 @@ import {ZkTLSAccount} from "../contracts/ZkTLSAccount.sol";
 import {The3CloudCoin} from "../contracts/PaymentToken.sol";
 import {MockVerifier} from "../contracts/mock/MockVerifier.sol";
 import {ExampleDApp} from "../contracts/mock/ExampleDApp.sol";
+import {RequestData} from "../contracts/lib/RequestData.sol";
 
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {UpgradeableBeacon} from "@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol";
 import {AccessManagerUpgradeable} from "@openzeppelin/contracts-upgradeable/access/manager/AccessManagerUpgradeable.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 
 contract ZkTLSTestLib {
     address public constant OWNER = address(uint160(uint256(keccak256("Owner"))));
@@ -23,7 +26,7 @@ contract ZkTLSTestLib {
     address public constant USER_ADMIN = address(uint160(uint256(keccak256("UserAdmin"))));
 
     uint256 public constant PADDING_GAS = 1000;
-    bytes32 public constant PROVER_ID = keccak256("PROVER_ID");
+    bytes32 public constant PROVER_ID = keccak256("ExampleProver");
 
     ZkTLSGateway public zkTLSGateway;
     address public zkTLSGatewayImplementation;
