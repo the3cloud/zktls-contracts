@@ -45,7 +45,7 @@ contract Config {
         deployConfig.paymentTokenAddress = stdToml.readAddress(file, "$.deploy.payment_token_address");
         deployConfig.paddingGas = stdToml.readUint(file, "$.deploy.padding_gas");
         deployConfig.create2DeployerAddress = stdToml.readAddress(file, "$.deploy.create2_deployer_address");
-        deployConfig.faucetAddress = stdToml.readAddress(file, "$.deploy.faucet_address", address(0));
+        deployConfig.faucetAddress = stdToml.readAddress(file, "$.deploy.faucet_address");
     }
 
     function getImplementationConfig() public view returns (ImplementationConfig memory implementationConfig) {
