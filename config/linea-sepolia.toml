@@ -3,6 +3,7 @@ create2_deployer_address = "0x04761a3E8093decaF771b5958B5702A0E17f38A3"
 owner_address = "0x245C6F7464B6E3843229d353a27B82213cC3Df95"
 padding_gas = 3000
 payment_token_address = "0x22fe21E19E3121B642F2e61b8E3f922bEb22F01B"
+faucet_address = "0x68d7a9B7B5950a1604DC23ba1Be9608B341f063F"
 
 [implementation]
 ZkTLSAccount = "0x83A6efF985F637286a82Ef2139cE9B9a1a5552e3"

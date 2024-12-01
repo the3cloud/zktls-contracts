@@ -27,6 +27,11 @@ contract DeployRecorder is Config {
         stdToml.write(paymentTokenStr, path, ".deploy.payment_token_address");
     }
 
+    function saveFaucet(string memory path, address faucet) public {
+        string memory faucetStr = Forge.safeVm().toString(faucet);
+        stdToml.write(faucetStr, path, ".deploy.faucet_address");
+    }
+
     function saveContractDeployInfo(string memory path, DeployConfig memory deployConfig) public {
         string memory configStr =
             stdToml.serialize("config", '{"deploy": {}, "implementation": {}, "proxy": {}, "beacon": {}}');
@@ -38,6 +43,7 @@ contract DeployRecorder is Config {
         stdToml.serialize("deploy", "padding_gas", deployConfig.paddingGas);
         string memory deployStr =
             stdToml.serialize("deploy", "create2_deployer_address", deployConfig.create2DeployerAddress);
+        stdToml.serialize("deploy", "faucet_address", deployConfig.faucetAddress);
         stdToml.write(deployStr, path, ".deploy");
 
         string memory implementationStr;
