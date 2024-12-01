@@ -12,8 +12,8 @@ import {ZkTLSAccount} from "./ZkTLSAccount.sol";
 
 /// @notice ZkTLS central management contract
 /// This contract used to register provers and register Account.
-/// The ZkTLSManager is a central administrative contract that handles the registration and management 
-/// of accounts and provers in the ZkTLS system. It serves as a factory for creating new ZkTLS accounts 
+/// The ZkTLSManager is a central administrative contract that handles the registration and management
+/// of accounts and provers in the ZkTLS system. It serves as a factory for creating new ZkTLS accounts
 /// and manages their access controls through a beacon proxy pattern.
 ///
 /// Key features include:

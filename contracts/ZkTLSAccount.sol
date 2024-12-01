@@ -11,8 +11,8 @@ import {ZkTLSGateway} from "./ZkTLSGateway.sol";
 import {IZkTLSAccount} from "./interfaces/IZkTLSAccount.sol";
 
 /// @title ZkTLSAccount is the client of dApps to interact with ZkTLsGateway.
-/// @notice ZkTLSAccount acts as an intermediary between dApps and the ZkTLS system, created and 
-/// registered through the ZkTLSManager's factory pattern. Each account is deployed as a beacon proxy with its 
+/// @notice ZkTLSAccount acts as an intermediary between dApps and the ZkTLS system, created and
+/// registered through the ZkTLSManager's factory pattern. Each account is deployed as a beacon proxy with its
 /// own access manager, allowing for flexible administrative control while maintaining upgradeability.
 contract ZkTLSAccount is IZkTLSAccount, Initializable, AccessManagedUpgradeable {
     using Address for address payable;

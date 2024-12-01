@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.28;
 
- /// @title RequestData library for ZkTLS request data structures
+/// @title RequestData library for ZkTLS request data structures
 library RequestData {
     /// @notice RequestDataFull is used to structure TLS request data when dApps interact with ZkTLS accounts
     /// @dev This struct contains the offset for encrypted data and an array of field positions
