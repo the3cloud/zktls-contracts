@@ -55,10 +55,10 @@ library RequestData {
 
         bytes calldata segment = data[segmentLength:];
 
-        uint64[] memory fields = new uint64[](light.fields.length - light.encryptedOffset);
-        bytes[] memory values = new bytes[](light.values.length - light.encryptedOffset);
+        uint64[] memory fields = new uint64[](light.encryptedOffset);
+        bytes[] memory values = new bytes[](light.encryptedOffset);
 
-        for (uint256 i = 0; i < fields.length; i++) {
+        for (uint256 i = 0; i < light.encryptedOffset; i++) {
             fields[i] = light.fields[i];
             values[i] = light.values[i];
         }
