@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.28;
 
+/// @title ZkTLSAccount interface
 interface IZkTLSAccount {
     function requestTLSCallTemplate(
         bytes32 proverId_,

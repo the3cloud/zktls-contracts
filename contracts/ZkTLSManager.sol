@@ -10,9 +10,16 @@ import {AccessManagerUpgradeable} from "@openzeppelin/contracts-upgradeable/acce
 import {ZkTLSGateway} from "./ZkTLSGateway.sol";
 import {ZkTLSAccount} from "./ZkTLSAccount.sol";
 
-/// @notice ZkTLS manager contract
-/// @author the3cloud
+/// @notice ZkTLS central management contract
 /// This contract used to register provers and register Account.
+/// The ZkTLSManager is a central administrative contract that handles the registration and management 
+/// of accounts and provers in the ZkTLS system. It serves as a factory for creating new ZkTLS accounts 
+/// and manages their access controls through a beacon proxy pattern.
+///
+/// Key features include:
+/// - Account registration with dedicated access management
+/// - Prover registration with verifier, submitter, and beneficiary assignments
+/// - Gas padding management for accurate fee calculations
 contract ZkTLSManager is Initializable, UUPSUpgradeable, OwnableUpgradeable {
     /// @notice Account beacon address
     address public accountBeacon;

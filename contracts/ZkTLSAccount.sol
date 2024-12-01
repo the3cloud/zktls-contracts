@@ -10,6 +10,10 @@ import {IZkTLSDAppCallback} from "./interfaces/IZkTLSDAppCallback.sol";
 import {ZkTLSGateway} from "./ZkTLSGateway.sol";
 import {IZkTLSAccount} from "./interfaces/IZkTLSAccount.sol";
 
+/// @title ZkTLSAccount is the client of dApps to interact with ZkTLsGateway.
+/// @notice ZkTLSAccount acts as an intermediary between dApps and the ZkTLS system, created and 
+/// registered through the ZkTLSManager's factory pattern. Each account is deployed as a beacon proxy with its 
+/// own access manager, allowing for flexible administrative control while maintaining upgradeability.
 contract ZkTLSAccount is IZkTLSAccount, Initializable, AccessManagedUpgradeable {
     using Address for address payable;
 
@@ -59,7 +63,7 @@ contract ZkTLSAccount is IZkTLSAccount, Initializable, AccessManagedUpgradeable 
         paddingGas = paddingGas_;
     }
 
-    /// @notice Request a TLS call template
+    /// @notice Request a TLS call with a pair of request and response templates.
     function requestTLSCallTemplate(
         bytes32 proverId_,
         bytes calldata requestData_,
@@ -92,7 +96,7 @@ contract ZkTLSAccount is IZkTLSAccount, Initializable, AccessManagedUpgradeable 
         lockedToken[paymentToken] += paymentFee;
     }
 
-    /// @notice Delivery the response
+    /// @notice Delivery the response to response handler defined in dApp.
     /// @dev This function only can be called by gateway.
     function deliveryResponse(
         uint256 gas_,
