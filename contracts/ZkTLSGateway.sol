@@ -12,6 +12,14 @@ import {IProofVerifier} from "./interfaces/IProofVerifier.sol";
 import {ZkTLSAccount} from "./ZkTLSAccount.sol";
 import {ZkTLSManager} from "./ZkTLSManager.sol";
 
+/// @title ZkTLSGateway is the main entry point for making TLS calls for dApps..
+/// @notice The ZkTLSGateway is a core contract that manages secure TLS communication requests
+/// and responses with zero-knowledge proofs. It acts as the main entry point for making TLS calls with ZK verification,
+/// handling request templating, proof verification, and fee management.
+/// Key features include:
+/// - Secure request handling with encrypted keys and response templates
+/// - Integration with dedicated proof verifiers for each prover
+/// - Fee computation based on response size and gas costs
 contract ZkTLSGateway is IZkTLSGateway, Initializable, UUPSUpgradeable, OwnableUpgradeable {
     /// @notice Address of the zkTLS manager contract
     address public manager;
