@@ -12,6 +12,11 @@ interface IZkTLSGateway {
         uint256 maxResponseBytes
     );
 
-    function deliveryResponse(bytes32 requestId, bytes32 requestHash, bytes calldata response, bytes calldata proofs)
-        external;
+    function deliveryResponse(
+        bytes32 requestId,
+        bytes32 requestHash,
+        bytes calldata responseTemplate,
+        bytes calldata response,
+        bytes calldata proofs
+    ) external;
 }

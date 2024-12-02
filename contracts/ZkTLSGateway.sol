@@ -128,12 +128,19 @@ contract ZkTLSGateway is IZkTLSGateway, Initializable, UUPSUpgradeable, OwnableU
     /// @dev This function only can be called by prover defined by request..
     /// @param requestId_ The ID of the request
     /// @param requestHash_ The hash of the request
+    /// @param responseTemplate_ The response template
     /// @param response_ The response
     /// @param proof_ The proof
-    function deliveryResponse(bytes32 requestId_, bytes32 requestHash_, bytes calldata response_, bytes calldata proof_)
-        external
-    {
-        if (msg.sender != proverSubmitterAddress[requestProverId[requestId_]]) {
+    function deliveryResponse(
+        bytes32 requestId_,
+        bytes32 requestHash_,
+        bytes calldata responseTemplate_,
+        bytes calldata response_,
+        bytes calldata proof_
+    ) external {
+        bytes32 proverId = requestProverId[requestId_];
+
+        if (msg.sender != proverSubmitterAddress[proverId]) {
             revert OnlyProverCanDeliveryResponse(msg.sender);
         }
 
@@ -141,14 +148,14 @@ contract ZkTLSGateway is IZkTLSGateway, Initializable, UUPSUpgradeable, OwnableU
 
         bytes memory receipt = abi.encode(requestHash_, response_);
 
-        address verifier = proverVerifierAddress[requestProverId[requestId_]];
+        address verifier = proverVerifierAddress[proverId];
 
         IProofVerifier(verifier).verifyProof(receipt, proof_);
 
         emit ResponseVerified(requestId_, requestHash_);
 
         ZkTLSAccount(payable(requestFromAccount[requestId_])).deliveryResponse(
-            gas, requestId_, beneficiaryAddressByRequestId(requestId_), response_
+            gas, requestId_, proverId, proverBeneficiaryAddress[proverId], responseTemplate_, response_
         );
 
         delete requestHash[requestId_];
