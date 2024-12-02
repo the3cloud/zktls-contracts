@@ -63,7 +63,15 @@ contract ZkTLSAccount is IZkTLSAccount, Initializable, AccessManagedUpgradeable 
         paddingGas = paddingGas_;
     }
 
-    /// @notice Request a TLS call with a pair of request and response templates.
+    /// @notice This function initiates a secure TLS request to zkTLS account.
+    /// @param proverId_ The unique identifier of the prover, you can find prover listed at [ZkTL contracts doc](https://docs.the3cloud.io/zktls-contracts/) 
+    /// @param requestData_ The encoded request data containing HTTP request
+    /// @param responseTemplateData_ the encoded response template, which may contain regex patterns for response matching
+    /// @param encryptedKey_ The encrypted session key for secure communication
+    /// @param maxResponseBytes_ Maximum allowed size of the response in bytes
+    /// @param requestCallbackGasLimit_ Gas limit for the callback function execution
+    /// @param expectedGasPrice_ Expected gas price for transaction execution
+    /// @return requestId A unique identifier for tracking this TLS request
     function requestTLSCallTemplate(
         bytes32 proverId_,
         bytes calldata requestData_,
@@ -98,6 +106,10 @@ contract ZkTLSAccount is IZkTLSAccount, Initializable, AccessManagedUpgradeable 
 
     /// @notice Delivery the response to response handler defined in dApp.
     /// @dev This function only can be called by gateway.
+    /// @param gas_ The gas amount used for the response delivery
+    /// @param requestId_ The unique identifier of the original TLS request
+    /// @param proverBeneficiaryAddress_ The address that will receive the payment for proof verification
+    /// @param response_ The verified response data from the TLS request
     function deliveryResponse(
         uint256 gas_,
         bytes32 requestId_,

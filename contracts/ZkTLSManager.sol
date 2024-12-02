@@ -43,7 +43,7 @@ contract ZkTLSManager is Initializable, UUPSUpgradeable, OwnableUpgradeable {
         bytes32 indexed proverId, address verifierAddress, address submitterAddress, address beneficiaryAddress
     );
 
-    event AccountRegistered(address indexed account);
+    event AccountRegistered(address indexed account, address accessManager);
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
@@ -69,10 +69,10 @@ contract ZkTLSManager is Initializable, UUPSUpgradeable, OwnableUpgradeable {
     }
 
     /// @notice Register account
-    /// @param admin_ Admin address
-    function registerAccount(address admin_) public returns (address account, address accessManager) {
+    /// @param owner_ Account owner
+    function registerAccount(address owner_) public returns (address account, address accessManager) {
         accessManager =
-            address(new BeaconProxy(accessManagerBeacon, abi.encodeCall(AccessManagerUpgradeable.initialize, (admin_))));
+            address(new BeaconProxy(accessManagerBeacon, abi.encodeCall(AccessManagerUpgradeable.initialize, (owner_))));
 
         account = address(
             new BeaconProxy(
@@ -81,9 +81,9 @@ contract ZkTLSManager is Initializable, UUPSUpgradeable, OwnableUpgradeable {
             )
         );
 
-        isRegisteredAccount[address(account)] = true;
+        isRegisteredAccount[account] = true;
 
-        emit AccountRegistered(address(account));
+        emit AccountRegistered(account, accessManager);
     }
 
     function setAccountBeacon(address accountBeacon_) external onlyOwner {

@@ -47,14 +47,10 @@ forge script script/Deploy.sol:Deploy --rpc-url <url> --private-key <key>
 
 ## Deployments
 
-| Contract Name | Address | Deployed BlockChains |
-| --- | --- | --- |
-| The3Cloud create2 factory | `0x04761a3E8093decaF771b5958B5702A0E17f38A3` | [linea sepolia](https://sepolia.lineascan.build/address/0x04761a3E8093decaF771b5958B5702A0E17f38A3) |
-| ZkTLSGateway proxy   | `0x0d26e10ab50fc195f38ca31a61e5bedf761413a4` | [linea sepolia](https://sepolia.lineascan.build/address/0x0d26e10ab50fc195f38ca31a61e5bedf761413a4) |
-| ZkTLSManager proxy   | `0xeE937b49eD211144A8478d892346811E2feAcAE9` | [linea sepolia](https://sepolia.lineascan.build/address/0xeE937b49eD211144A8478d892346811E2feAcAE9) | 
-| ZkTLSAccount Beacon  | `0x...` | |
-| The3CloudCoin Faucet | `0x...` | |
+Please refer to the [config directory](https://github.com/the3cloud/zktls-contracts/tree/main/config) and find related chain id to find deployed contract address.
 
+## Deployed Prover ID
 
-
-
+| Prover ID | Native Gas Cost | Payment Fee | Verifier Type |
+|-----------|----------------|-------------|---------------|
+| 0xe4f395abcf8e2cf08d98b83966e70024139469def2c9bfc97266900c3983454d | 1000 | 1000 | mock |
