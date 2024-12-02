@@ -23,7 +23,7 @@ out = "docs"
 title = "ZKTLS Contracts Docs"
 book = "docs/book.toml"
 ignore = [
-  "contracts/mock",
+  "contracts/mock/*",
   "contracts/Counter.sol",
   "contracts/Create2Deployer.sol",
   "contracts/SimpleFaucet.sol",

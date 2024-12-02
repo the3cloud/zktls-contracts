@@ -44,6 +44,9 @@ contract ZkTLSAccount is IZkTLSAccount, Initializable, AccessManagedUpgradeable 
     /// @notice Mapping of requestId to payment fee
     mapping(bytes32 => uint256) public requestPaymentFee;
 
+    /// @notice Mapping of requestId to native fee
+    mapping(bytes32 => uint256) public requestNativeFee;
+
     /// @notice Mapping of token to locked amount
     mapping(address => uint256) public lockedToken;
 
@@ -63,7 +66,19 @@ contract ZkTLSAccount is IZkTLSAccount, Initializable, AccessManagedUpgradeable 
         paddingGas = paddingGas_;
     }
 
-    /// @notice Request a TLS call with a pair of request and response templates.
+    error InvalidDApp(address dApp);
+
+    event TokenLocked(address indexed sender, bytes32 requestId, uint256 nativeGasAmount, uint256 paymentFeeAmount);
+
+    /// @notice This function initiates a secure TLS request to zkTLS account.
+    /// @param proverId_ The unique identifier of the prover, you can find prover listed at [ZkTL contracts doc](https://docs.the3cloud.io/zktls-contracts/)
+    /// @param requestData_ The encoded request data containing HTTP request
+    /// @param responseTemplateData_ the encoded response template, which may contain regex patterns for response matching
+    /// @param encryptedKey_ The encrypted session key for secure communication
+    /// @param maxResponseBytes_ Maximum allowed size of the response in bytes
+    /// @param requestCallbackGasLimit_ Gas limit for the callback function execution
+    /// @param expectedGasPrice_ Expected gas price for transaction execution
+    /// @return requestId A unique identifier for tracking this TLS request
     function requestTLSCallTemplate(
         bytes32 proverId_,
         bytes calldata requestData_,
@@ -73,7 +88,7 @@ contract ZkTLSAccount is IZkTLSAccount, Initializable, AccessManagedUpgradeable 
         uint256 requestCallbackGasLimit_,
         uint256 expectedGasPrice_
     ) external payable returns (bytes32 requestId) {
-        require(dApps[msg.sender], "ZkTLSAccount: Only dApps can request");
+        if (!dApps[msg.sender]) revert InvalidDApp(msg.sender);
 
         requestId = ZkTLSGateway(gateway).requestTLSCallTemplate(
             proverId_, requestData_, responseTemplateData_, encryptedKey_, maxResponseBytes_
@@ -90,50 +105,93 @@ contract ZkTLSAccount is IZkTLSAccount, Initializable, AccessManagedUpgradeable 
         nativeGas += requestCallbackGasLimit_ + paddingGas + TX_STATIC_GAS;
 
         uint256 gasFee = nativeGas * expectedGasPrice_;
+        requestNativeFee[requestId] = gasFee;
         lockedToken[address(0)] += gasFee;
 
         requestPaymentFee[requestId] = paymentFee;
         lockedToken[paymentToken] += paymentFee;
+
+        emit TokenLocked(msg.sender, requestId, gasFee, paymentFee);
     }
+
+    error InvalidGateway(address gateway);
+    error RequestNotFound(bytes32 requestId);
+    error CallbackFailed(bytes32 requestId);
+    error InvalidPaymentFee(uint256 paymentFee, uint256 expectedPaymentFee);
+    error InvalidNativeFee(uint256 nativeFee, uint256 expectedNativeFee);
+
+    event PaymentReceived(bytes32 indexed requestId, uint256 nativeGasAmount, uint256 paymentFeeAmount);
 
     /// @notice Delivery the response to response handler defined in dApp.
     /// @dev This function only can be called by gateway.
+    /// @param gas_ The gas amount used for the response delivery
+    /// @param requestId_ The unique identifier of the original TLS request
+    /// @param proverBeneficiaryAddress_ The address that will receive the payment for proof verification
+    /// @param response_ The verified response data from the TLS request
     function deliveryResponse(
         uint256 gas_,
         bytes32 requestId_,
+        bytes32 proverId_,
         address proverBeneficiaryAddress_,
+        bytes calldata responseTemplate_,
         bytes calldata response_
     ) external {
-        require(msg.sender == gateway, "ZkTLSAccount: Only gateway can deliver responses");
+        if (msg.sender != gateway) revert InvalidGateway(msg.sender);
 
         address requestFrom_ = requestFrom[requestId_];
-        require(requestFrom_ != address(0), "ZkTLSAccount: Request not found");
+        if (requestFrom_ == address(0)) revert RequestNotFound(requestId_);
 
         uint256 gasLimit = requestCallbackGasLimit[requestId_];
         (bool success,) = address(requestFrom_).call{gas: gasLimit}(
             abi.encodeCall(IZkTLSDAppCallback.deliveryResponse, (requestId_, response_))
         );
-        require(success, "ZkTLSAccount: Callback failed");
 
-        IERC20(paymentToken).transfer(proverBeneficiaryAddress_, requestPaymentFee[requestId_]);
+        if (!success) revert CallbackFailed(requestId_);
+
+        // Compute really paid gas
+        (, uint256 paymentFee) = ZkTLSGateway(gateway).computeFee(proverId_, responseTemplate_, response_.length);
+
+        if (paymentFee > requestPaymentFee[requestId_]) {
+            revert InvalidPaymentFee(paymentFee, requestPaymentFee[requestId_]);
+        }
+
+        IERC20(paymentToken).transfer(proverBeneficiaryAddress_, paymentFee);
         lockedToken[paymentToken] -= requestPaymentFee[requestId_];
 
         uint256 nativeGas = gas_ - gasleft() + TX_STATIC_GAS;
-        uint256 nativeGasValue = nativeGas * tx.gasprice;
+
+        uint256 nativeGasValue = 0;
+        if (tx.gasprice > requestExpectedGasPrice[requestId_]) {
+            nativeGasValue = nativeGas * requestExpectedGasPrice[requestId_];
+        } else {
+            nativeGasValue = nativeGas * tx.gasprice;
+        }
+
+        if (nativeGasValue > requestNativeFee[requestId_]) {
+            revert InvalidNativeFee(nativeGasValue, requestNativeFee[requestId_]);
+        }
+
         payable(proverBeneficiaryAddress_).sendValue(nativeGasValue);
-        lockedToken[address(0)] -= nativeGasValue;
+        lockedToken[address(0)] -= requestNativeFee[requestId_];
+
+        emit PaymentReceived(requestId_, nativeGasValue, paymentFee);
 
         delete requestFrom[requestId_];
         delete requestCallbackGasLimit[requestId_];
         delete requestExpectedGasPrice[requestId_];
     }
 
+    event DAppAdded(address indexed dApp);
+    event DAppRemoved(address indexed dApp);
+
     function addDApp(address dapp_) external restricted {
         dApps[dapp_] = true;
+        emit DAppAdded(dapp_);
     }
 
     function removeDApp(address dapp_) external restricted {
         dApps[dapp_] = false;
+        emit DAppRemoved(dapp_);
     }
 
     function withdrawERC20(address token_, uint256 amount_) external restricted {

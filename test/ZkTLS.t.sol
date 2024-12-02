@@ -199,7 +199,7 @@ contract ZkTLSTest is ZkTLSTestLib, Test {
 
         /// Test delivery response
         Forge.vm().prank(SUBMITTER);
-        zkTLSGateway.deliveryResponse(requestId, requestHash, abi.encode("response"), bytes(""));
+        zkTLSGateway.deliveryResponse(requestId, requestHash, abi.encode("response"), bytes(""), bytes(""));
         // TODO: Add gas check
 
         assertEq(zkTLSGateway.requestHash(requestId), bytes32(0));
