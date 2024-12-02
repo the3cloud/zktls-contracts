@@ -63,6 +63,8 @@ contract ZkTLSAccount is IZkTLSAccount, Initializable, AccessManagedUpgradeable 
         paddingGas = paddingGas_;
     }
 
+    error InvalidDApp(address dApp);
+
     /// @notice Request a TLS call with a pair of request and response templates.
     function requestTLSCallTemplate(
         bytes32 proverId_,
@@ -73,7 +75,7 @@ contract ZkTLSAccount is IZkTLSAccount, Initializable, AccessManagedUpgradeable 
         uint256 requestCallbackGasLimit_,
         uint256 expectedGasPrice_
     ) external payable returns (bytes32 requestId) {
-        require(dApps[msg.sender], "ZkTLSAccount: Only dApps can request");
+        if (!dApps[msg.sender]) revert InvalidDApp(msg.sender);
 
         requestId = ZkTLSGateway(gateway).requestTLSCallTemplate(
             proverId_, requestData_, responseTemplateData_, encryptedKey_, maxResponseBytes_
@@ -96,6 +98,10 @@ contract ZkTLSAccount is IZkTLSAccount, Initializable, AccessManagedUpgradeable 
         lockedToken[paymentToken] += paymentFee;
     }
 
+    error InvalidGateway(address gateway);
+    error RequestNotFound(bytes32 requestId);
+    error CallbackFailed(bytes32 requestId);
+
     /// @notice Delivery the response to response handler defined in dApp.
     /// @dev This function only can be called by gateway.
     function deliveryResponse(
@@ -104,16 +110,16 @@ contract ZkTLSAccount is IZkTLSAccount, Initializable, AccessManagedUpgradeable 
         address proverBeneficiaryAddress_,
         bytes calldata response_
     ) external {
-        require(msg.sender == gateway, "ZkTLSAccount: Only gateway can deliver responses");
+        if (msg.sender != gateway) revert InvalidGateway(msg.sender);
 
         address requestFrom_ = requestFrom[requestId_];
-        require(requestFrom_ != address(0), "ZkTLSAccount: Request not found");
+        if (requestFrom_ == address(0)) revert RequestNotFound(requestId_);
 
         uint256 gasLimit = requestCallbackGasLimit[requestId_];
         (bool success,) = address(requestFrom_).call{gas: gasLimit}(
             abi.encodeCall(IZkTLSDAppCallback.deliveryResponse, (requestId_, response_))
         );
-        require(success, "ZkTLSAccount: Callback failed");
+        if (!success) revert CallbackFailed(requestId_);
 
         IERC20(paymentToken).transfer(proverBeneficiaryAddress_, requestPaymentFee[requestId_]);
         lockedToken[paymentToken] -= requestPaymentFee[requestId_];

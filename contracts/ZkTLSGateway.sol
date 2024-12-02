@@ -68,6 +68,9 @@ contract ZkTLSGateway is IZkTLSGateway, Initializable, UUPSUpgradeable, OwnableU
         bytesWeight = bytesWeight_;
     }
 
+    error NotManagerOrOwner(address sender);
+    error InvalidVerifierAddress();
+
     /// @notice Set the verifier for a prover
     /// @dev Only the manager or owner can set the verifier for a prover
     /// @param proverId The ID of the prover
@@ -80,13 +83,15 @@ contract ZkTLSGateway is IZkTLSGateway, Initializable, UUPSUpgradeable, OwnableU
         address submitterAddress_,
         address beneficiaryAddress_
     ) external {
-        require(msg.sender == manager || msg.sender == owner(), "Only manager or owner can set prover verifier");
-        require(verifierAddress_ != address(0), "Invalid verifier address");
+        if (msg.sender != manager && msg.sender != owner()) revert NotManagerOrOwner(msg.sender);
+        if (verifierAddress_ == address(0)) revert InvalidVerifierAddress();
 
         proverVerifierAddress[proverId] = verifierAddress_;
         proverSubmitterAddress[proverId] = submitterAddress_;
         proverBeneficiaryAddress[proverId] = beneficiaryAddress_;
     }
+
+    error InvalidUnregisteredAccount(address account);
 
     /// @notice Request a TLS call template
     /// @dev only account can call this function.
@@ -102,10 +107,7 @@ contract ZkTLSGateway is IZkTLSGateway, Initializable, UUPSUpgradeable, OwnableU
         bytes calldata encryptedKey_,
         uint256 maxResponseBytes_
     ) external payable returns (bytes32 requestId) {
-        require(
-            ZkTLSManager(manager).isRegisteredAccount(msg.sender),
-            "Only registered account can request TLS call template"
-        );
+        if (!ZkTLSManager(manager).isRegisteredAccount(msg.sender)) revert InvalidUnregisteredAccount(msg.sender);
 
         requestId = RequestId.compute(msg.sender, nonce++);
 
@@ -118,6 +120,8 @@ contract ZkTLSGateway is IZkTLSGateway, Initializable, UUPSUpgradeable, OwnableU
         );
     }
 
+    error OnlyProverCanDeliveryResponse(address sender);
+
     event ResponseVerified(bytes32 requestId, bytes32 requestHash);
 
     /// @notice Delivery the response
@@ -129,7 +133,9 @@ contract ZkTLSGateway is IZkTLSGateway, Initializable, UUPSUpgradeable, OwnableU
     function deliveryResponse(bytes32 requestId_, bytes32 requestHash_, bytes calldata response_, bytes calldata proof_)
         external
     {
-        require(msg.sender == proverSubmitterAddress[requestProverId[requestId_]], "Only prover can delivery response");
+        if (msg.sender != proverSubmitterAddress[requestProverId[requestId_]]) {
+            revert OnlyProverCanDeliveryResponse(msg.sender);
+        }
 
         uint256 gas = gasleft();
 
