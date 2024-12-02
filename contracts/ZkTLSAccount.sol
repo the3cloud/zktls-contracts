@@ -64,6 +64,12 @@ contract ZkTLSAccount is IZkTLSAccount, Initializable, AccessManagedUpgradeable 
     }
 
     error InvalidDApp(address dApp);
+    event LockedToken(
+        address index sender,
+        bytes32 index requestId, 
+        uint256 nativeGasAmount,
+        uint256 paymentFeeAmount
+    );
     /// @notice This function initiates a secure TLS request to zkTLS account.
     /// @param proverId_ The unique identifier of the prover, you can find prover listed at [ZkTL contracts doc](https://docs.the3cloud.io/zktls-contracts/) 
     /// @param requestData_ The encoded request data containing HTTP request
@@ -82,7 +88,7 @@ contract ZkTLSAccount is IZkTLSAccount, Initializable, AccessManagedUpgradeable 
         uint256 requestCallbackGasLimit_,
         uint256 expectedGasPrice_
     ) external payable returns (bytes32 requestId) {
-        require(dApps[msg.sender], "ZkTLSAccount: Only dApps can request");
+        if (!dApps[msg.sender]) revert InvalidDApp(msg.sender);
 
         requestId = ZkTLSGateway(gateway).requestTLSCallTemplate(
             proverId_, requestData_, responseTemplateData_, encryptedKey_, maxResponseBytes_
@@ -103,6 +109,8 @@ contract ZkTLSAccount is IZkTLSAccount, Initializable, AccessManagedUpgradeable 
 
         requestPaymentFee[requestId] = paymentFee;
         lockedToken[paymentToken] += paymentFee;
+
+        emit LockedToken(msg.sender, requestId, gasFee, paymentFee);
     }
 
     error InvalidGateway(address gateway);
@@ -132,6 +140,7 @@ contract ZkTLSAccount is IZkTLSAccount, Initializable, AccessManagedUpgradeable 
         );
         if (!success) revert CallbackFailed(requestId_);
 
+        // TODO: fix here
         IERC20(paymentToken).transfer(proverBeneficiaryAddress_, requestPaymentFee[requestId_]);
         lockedToken[paymentToken] -= requestPaymentFee[requestId_];
 
@@ -147,15 +156,18 @@ contract ZkTLSAccount is IZkTLSAccount, Initializable, AccessManagedUpgradeable 
         payable(proverBeneficiaryAddress_).sendValue(nativeGasValue);
         lockedToken[address(0)] -= nativeGasValue;
 
+        // emit PaymentReceived(requestId_, nativeGasValue, requestPaymentFee[requestId_]);
+        
         delete requestFrom[requestId_];
         delete requestCallbackGasLimit[requestId_];
         delete requestExpectedGasPrice[requestId_];
     }
 
+    // TODO: events
     function addDApp(address dapp_) external restricted {
         dApps[dapp_] = true;
     }
-
+    // TODO: events
     function removeDApp(address dapp_) external restricted {
         dApps[dapp_] = false;
     }
