@@ -64,14 +64,12 @@ contract ZkTLSAccount is IZkTLSAccount, Initializable, AccessManagedUpgradeable 
     }
 
     error InvalidDApp(address dApp);
+
     event LockedToken(
-        address index sender,
-        bytes32 index requestId, 
-        uint256 nativeGasAmount,
-        uint256 paymentFeeAmount
+        address indexed sender, bytes32 indexed requestId, uint256 nativeGasAmount, uint256 paymentFeeAmount
     );
     /// @notice This function initiates a secure TLS request to zkTLS account.
-    /// @param proverId_ The unique identifier of the prover, you can find prover listed at [ZkTL contracts doc](https://docs.the3cloud.io/zktls-contracts/) 
+    /// @param proverId_ The unique identifier of the prover, you can find prover listed at [ZkTL contracts doc](https://docs.the3cloud.io/zktls-contracts/)
     /// @param requestData_ The encoded request data containing HTTP request
     /// @param responseTemplateData_ the encoded response template, which may contain regex patterns for response matching
     /// @param encryptedKey_ The encrypted session key for secure communication
@@ -79,6 +77,7 @@ contract ZkTLSAccount is IZkTLSAccount, Initializable, AccessManagedUpgradeable 
     /// @param requestCallbackGasLimit_ Gas limit for the callback function execution
     /// @param expectedGasPrice_ Expected gas price for transaction execution
     /// @return requestId A unique identifier for tracking this TLS request
+
     function requestTLSCallTemplate(
         bytes32 proverId_,
         bytes calldata requestData_,
@@ -157,7 +156,7 @@ contract ZkTLSAccount is IZkTLSAccount, Initializable, AccessManagedUpgradeable 
         lockedToken[address(0)] -= nativeGasValue;
 
         // emit PaymentReceived(requestId_, nativeGasValue, requestPaymentFee[requestId_]);
-        
+
         delete requestFrom[requestId_];
         delete requestCallbackGasLimit[requestId_];
         delete requestExpectedGasPrice[requestId_];
@@ -168,6 +167,7 @@ contract ZkTLSAccount is IZkTLSAccount, Initializable, AccessManagedUpgradeable 
         dApps[dapp_] = true;
     }
     // TODO: events
+
     function removeDApp(address dapp_) external restricted {
         dApps[dapp_] = false;
     }

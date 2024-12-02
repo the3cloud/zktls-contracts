@@ -3,9 +3,8 @@ pragma solidity ^0.8.28;
 
 /// @title ZkTLSAccount interface
 interface IZkTLSAccount {
-
     /// @notice This function initiates a secure TLS request to zkTLS account.
-    /// @param proverId_ The unique identifier of the prover, you can find prover listed at [ZkTL contracts doc](https://docs.the3cloud.io/zktls-contracts/) 
+    /// @param proverId_ The unique identifier of the prover, you can find prover listed at [ZkTL contracts doc](https://docs.the3cloud.io/zktls-contracts/)
     /// @param requestData_ The encoded request data containing HTTP request
     /// @param responseTemplateData_ the encoded response template, which may contain regex patterns for response matching
     /// @param encryptedKey_ The encrypted session key for secure communication

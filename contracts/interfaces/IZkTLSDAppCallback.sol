@@ -3,7 +3,6 @@ pragma solidity ^0.8.28;
 
 /// @title ZkTLSDAppCallback interfacie, implemented by ddApps
 interface IZkTLSDAppCallback {
-
     /// @notice Callback function that receives the response from a ZkTLS request
     /// @dev This function is called by the ZkTLS gatewal when a response is ready
     /// @param requestId_ The unique identifier of the TLS request
