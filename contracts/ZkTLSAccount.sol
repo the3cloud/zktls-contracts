@@ -119,7 +119,14 @@ contract ZkTLSAccount is IZkTLSAccount, Initializable, AccessManagedUpgradeable 
         lockedToken[paymentToken] -= requestPaymentFee[requestId_];
 
         uint256 nativeGas = gas_ - gasleft() + TX_STATIC_GAS;
-        uint256 nativeGasValue = nativeGas * tx.gasprice;
+
+        uint256 nativeGasValue = 0;
+        if (tx.gasprice > requestExpectedGasPrice[requestId_]) {
+            nativeGasValue = nativeGas * requestExpectedGasPrice[requestId_];
+        } else {
+            nativeGasValue = nativeGas * tx.gasprice;
+        }
+
         payable(proverBeneficiaryAddress_).sendValue(nativeGasValue);
         lockedToken[address(0)] -= nativeGasValue;
 
