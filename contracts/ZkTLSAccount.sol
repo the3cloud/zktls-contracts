@@ -63,6 +63,7 @@ contract ZkTLSAccount is IZkTLSAccount, Initializable, AccessManagedUpgradeable 
         paddingGas = paddingGas_;
     }
 
+    error InvalidDApp(address dApp);
     /// @notice This function initiates a secure TLS request to zkTLS account.
     /// @param proverId_ The unique identifier of the prover, you can find prover listed at [ZkTL contracts doc](https://docs.the3cloud.io/zktls-contracts/) 
     /// @param requestData_ The encoded request data containing HTTP request
@@ -104,6 +105,10 @@ contract ZkTLSAccount is IZkTLSAccount, Initializable, AccessManagedUpgradeable 
         lockedToken[paymentToken] += paymentFee;
     }
 
+    error InvalidGateway(address gateway);
+    error RequestNotFound(bytes32 requestId);
+    error CallbackFailed(bytes32 requestId);
+
     /// @notice Delivery the response to response handler defined in dApp.
     /// @dev This function only can be called by gateway.
     /// @param gas_ The gas amount used for the response delivery
@@ -116,22 +121,29 @@ contract ZkTLSAccount is IZkTLSAccount, Initializable, AccessManagedUpgradeable 
         address proverBeneficiaryAddress_,
         bytes calldata response_
     ) external {
-        require(msg.sender == gateway, "ZkTLSAccount: Only gateway can deliver responses");
+        if (msg.sender != gateway) revert InvalidGateway(msg.sender);
 
         address requestFrom_ = requestFrom[requestId_];
-        require(requestFrom_ != address(0), "ZkTLSAccount: Request not found");
+        if (requestFrom_ == address(0)) revert RequestNotFound(requestId_);
 
         uint256 gasLimit = requestCallbackGasLimit[requestId_];
         (bool success,) = address(requestFrom_).call{gas: gasLimit}(
             abi.encodeCall(IZkTLSDAppCallback.deliveryResponse, (requestId_, response_))
         );
-        require(success, "ZkTLSAccount: Callback failed");
+        if (!success) revert CallbackFailed(requestId_);
 
         IERC20(paymentToken).transfer(proverBeneficiaryAddress_, requestPaymentFee[requestId_]);
         lockedToken[paymentToken] -= requestPaymentFee[requestId_];
 
         uint256 nativeGas = gas_ - gasleft() + TX_STATIC_GAS;
-        uint256 nativeGasValue = nativeGas * tx.gasprice;
+
+        uint256 nativeGasValue = 0;
+        if (tx.gasprice > requestExpectedGasPrice[requestId_]) {
+            nativeGasValue = nativeGas * requestExpectedGasPrice[requestId_];
+        } else {
+            nativeGasValue = nativeGas * tx.gasprice;
+        }
+
         payable(proverBeneficiaryAddress_).sendValue(nativeGasValue);
         lockedToken[address(0)] -= nativeGasValue;
 
