@@ -109,7 +109,7 @@ contract ZkTLSGateway is IZkTLSGateway, Initializable, UUPSUpgradeable, OwnableU
     ) external payable returns (bytes32 requestId) {
         if (!ZkTLSManager(manager).isRegisteredAccount(msg.sender)) revert InvalidUnregisteredAccount(msg.sender);
 
-        requestId = RequestId.compute(msg.sender, nonce++);
+        requestId = RequestId.compute(address(this), msg.sender, nonce++);
 
         requestHash[requestId] = RequestData.hash(requestData_);
         requestProverId[requestId] = proverId_;
@@ -176,10 +176,6 @@ contract ZkTLSGateway is IZkTLSGateway, Initializable, UUPSUpgradeable, OwnableU
 
         // compute payment token gas
         paymentFee = paymentVerifyFee + responseBytes_ * bytesWeight;
-    }
-
-    function beneficiaryAddressByRequestId(bytes32 requestId_) internal view returns (address) {
-        return proverBeneficiaryAddress[requestProverId[requestId_]];
     }
 
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
