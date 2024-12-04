@@ -75,11 +75,11 @@ contract Deploy is Script, UpgradeableDeployer {
             )
         );
 
-        ZkTLSGateway(zkTLSGatewayAddress).setManager(zkTLSManagerAddress);
-
         console.log("ZkTLSManager deployed at", zkTLSManagerAddress);
 
         vm.stopBroadcast();
+
+        console.log("faucet - Deployed contracts:", deployConfig.faucetAddress);
 
         saveContractDeployInfo(configPath(), deployConfig);
     }
