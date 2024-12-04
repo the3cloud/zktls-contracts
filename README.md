@@ -14,13 +14,24 @@ cd zktls-contracts
 forge soldeer install
 ```
 
-### Deployment
+### Deployment on Anvil
 
 ```bash
-# deploy contracts with create2
-forge script script/DeployCreate2.sol:Deploy --rpc-url <url> --private-key <key>
-# deploy general contracts
+anvil
+# deploy the3cloud deployer for deterministic deployment, then payment toekn, gateway and manager
+# transfer gas to deployer
+cast send --private-key <src_pk> --rpc-url <url> --value <amount> <deployer_addr>
+# check balance
+cast balance --rpc-url=<url> <deployer_addr>
+# deploy the3cloud contracts
 forge script script/Deploy.sol:Deploy --rpc-url <url> --private-key <key>
+# deploy faucet contract
+forge script script/DeployCreate2.sol:Deploy --rpc-url <url> --private-key <key>
+
+
+## contracts verification
+```bash
+forge verify-contract --chain-id <chain_id> --etherscan-api-key <etherscan_api_key> <contract_address> <contract_path>
 ```
 
 ## Directory Structure 
