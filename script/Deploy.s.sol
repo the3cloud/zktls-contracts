@@ -23,39 +23,39 @@ contract Deploy is Script, UpgradeableDeployer {
 
         Create2Deployer deployer;
 
-        if (deployConfig.create2DeployerAddress == address(0)) {
-            deployer = new Create2Deployer();
-            console.log("Create2Deployer deployed at", address(deployer));
+        // if (deployConfig.create2DeployerAddress == address(0)) {
+        //     deployer = new Create2Deployer();
+        //     console.log("Create2Deployer deployed at", address(deployer));
 
-            deployConfig.create2DeployerAddress = address(deployer);
-        } else {
-            deployer = Create2Deployer(deployConfig.create2DeployerAddress);
-        }
+        //     deployConfig.create2DeployerAddress = address(deployer);
+        // } else {
+        //     deployer = Create2Deployer(deployConfig.create2DeployerAddress);
+        // }
 
-        if (deployConfig.paymentTokenAddress == address(0)) {
-            deployConfig.paymentTokenAddress = address(new The3CloudCoin(deployConfig.ownerAddress));
-        }
+        // if (deployConfig.paymentTokenAddress == address(0)) {
+        //     deployConfig.paymentTokenAddress = address(new The3CloudCoin(deployConfig.ownerAddress));
+        // }
 
         /// Deploy ZkTLSGateway
-        address zkTLSGatewayAddress = deployUUPS(
-            deployer,
-            "ZkTLSGateway",
-            type(ZkTLSGateway).creationCode,
-            abi.encodeCall(ZkTLSGateway.initialize, (deployConfig.ownerAddress, 1 gwei))
-        );
-        console.log("ZkTLSGateway deployed at", zkTLSGatewayAddress);
+        // address zkTLSGatewayAddress = deployUUPS(
+        //     deployer,
+        //     "ZkTLSGateway",
+        //     type(ZkTLSGateway).creationCode,
+        //     abi.encodeCall(ZkTLSGateway.initialize, (deployConfig.ownerAddress, 1 gwei))
+        // );
+        // console.log("ZkTLSGateway deployed at", zkTLSGatewayAddress);
 
-        /// Deploy ZkTLSAccount in Beacon
-        address zkTLSAccountBeaconAddress =
-            deployBeacon(deployer, "ZkTLSAccount", type(ZkTLSAccount).creationCode, deployConfig.ownerAddress);
+        // /// Deploy ZkTLSAccount in Beacon
+        // address zkTLSAccountBeaconAddress =
+        //     deployBeacon(deployer, "ZkTLSAccount", type(ZkTLSAccount).creationCode, deployConfig.ownerAddress);
 
-        console.log("ZkTLSAccount Beacon deployed at", zkTLSAccountBeaconAddress);
+        // console.log("ZkTLSAccount Beacon deployed at", zkTLSAccountBeaconAddress);
 
         address accessManagerBeaconAddress = deployBeacon(
             deployer, "AccessManager", type(AccessManagerUpgradeable).creationCode, deployConfig.ownerAddress
         );
 
-        console.log("AccessManager Beacon deployed at", accessManagerBeaconAddress);
+        // console.log("AccessManager Beacon deployed at", accessManagerBeaconAddress);
 
         /// Deploy ZkTLSManager
         address zkTLSManagerAddress = deployUUPS(
@@ -66,8 +66,8 @@ contract Deploy is Script, UpgradeableDeployer {
                 ZkTLSManager.initialize,
                 (
                     deployConfig.ownerAddress,
-                    zkTLSGatewayAddress,
-                    zkTLSAccountBeaconAddress,
+                    address(0xb4489aE98b05EB3266fDc120037e8496aeB2E21e),
+                    address(0x14f0A862B46a13FAb2CA2542FFeF6B42efeC1E62),
                     accessManagerBeaconAddress,
                     deployConfig.paymentTokenAddress,
                     deployConfig.paddingGas
@@ -78,8 +78,6 @@ contract Deploy is Script, UpgradeableDeployer {
         console.log("ZkTLSManager deployed at", zkTLSManagerAddress);
 
         vm.stopBroadcast();
-
-        console.log("faucet - Deployed contracts:", deployConfig.faucetAddress);
 
         saveContractDeployInfo(configPath(), deployConfig);
     }
