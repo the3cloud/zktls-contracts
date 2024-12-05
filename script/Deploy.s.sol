@@ -79,6 +79,8 @@ contract Deploy is Script, UpgradeableDeployer {
 
         vm.stopBroadcast();
 
+        console.log("faucet - Deployed contracts:", deployConfig.faucetAddress);
+
         saveContractDeployInfo(configPath(), deployConfig);
     }
 }
