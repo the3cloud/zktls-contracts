@@ -66,8 +66,8 @@ contract Deploy is Script, UpgradeableDeployer {
                 ZkTLSManager.initialize,
                 (
                     deployConfig.ownerAddress,
-                    zkTLSGatewayAddress,
-                    zkTLSAccountBeaconAddress,
+                    address(0xb4489aE98b05EB3266fDc120037e8496aeB2E21e),
+                    address(0x14f0A862B46a13FAb2CA2542FFeF6B42efeC1E62),
                     accessManagerBeaconAddress,
                     deployConfig.paymentTokenAddress,
                     deployConfig.paddingGas
@@ -75,11 +75,11 @@ contract Deploy is Script, UpgradeableDeployer {
             )
         );
 
-        ZkTLSGateway(zkTLSGatewayAddress).setManager(zkTLSManagerAddress);
-
         console.log("ZkTLSManager deployed at", zkTLSManagerAddress);
 
         vm.stopBroadcast();
+
+        console.log("faucet - Deployed contracts:", deployConfig.faucetAddress);
 
         saveContractDeployInfo(configPath(), deployConfig);
     }
