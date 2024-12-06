@@ -16,6 +16,26 @@ forge soldeer install
 
 ### Deployment on Anvil
 
+set the following variables in .env, refer to .env.example
+
+```bash
+DEPLOY_CONFIG=anvil
+
+# RPC URLs
+RPC = http://localhost:8545
+CHAINID = 31337
+
+# deployer private key
+DEPLOYER_ADDRESS = <address>
+DEPLOYER_PK = <private key>
+
+# owner address
+OWNER_ADDRESS=<address>
+
+# Etherscan API Key for verification, not used with anvil
+ETHERSCAN_API_KEY=<etherscan api key>
+```
+
 ```bash
 anvil
 # deploy the3cloud deployer for deterministic deployment, then payment toekn, gateway and manager
