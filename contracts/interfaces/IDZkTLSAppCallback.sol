@@ -7,5 +7,5 @@ interface IZkTLSDAppCallback {
     /// @dev This function is called by the ZkTLS gatewal when a response is ready
     /// @param requestId_ The unique identifier of the TLS request
     /// @param response_ The verified response data from the TLS request
-    function deliveryResponse(bytes32 requestId_, bytes calldata response_) external;
+    function deliveryResponse(bytes32 requestId_, bytes[] calldata response_) external;
 }
