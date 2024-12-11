@@ -35,11 +35,12 @@ contract ZkTLSClient is Initializable, AccessManagedUpgradeable {
         dAppKeyToAddress[dAppKey_] = dAppAddress_;
     }
 
+    error OnlySuperAdmin();
+
     modifier onlySuperAdmin() {
-        require(
-            msg.sender == register.registeredAddress(AddressRegisterLib.SUPER_ADMIN_ADDRESS),
-            "Only super admin can call this function"
-        );
+        if (msg.sender != register.registeredAddress(AddressRegisterLib.SUPER_ADMIN_ADDRESS)) {
+            revert OnlySuperAdmin();
+        }
         _;
     }
 
@@ -51,12 +52,13 @@ contract ZkTLSClient is Initializable, AccessManagedUpgradeable {
         }
     }
 
+    error OnlyService();
+
     modifier onlyService() {
         // We can add other service in future.
-        require(
-            register.registeredAddress(AddressRegisterLib.ZKTLS_GATEWAY_ADDRESS) == msg.sender,
-            "Only registered account can call this function"
-        );
+        if (msg.sender != register.registeredAddress(AddressRegisterLib.ZKTLS_GATEWAY_ADDRESS)) {
+            revert OnlyService();
+        }
         _;
     }
 

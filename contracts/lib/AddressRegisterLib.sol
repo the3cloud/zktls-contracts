@@ -10,4 +10,6 @@ library AddressRegisterLib {
     bytes32 constant ZKTLS_CLIENT_MANAGER_ADDRESS = keccak256("ZKTLS_CLIENT_MANAGER_ADDRESS");
 
     bytes32 constant SUPER_ADMIN_ADDRESS = keccak256("SUPER_ADMIN_ADDRESS");
+
+    bytes32 constant ZKTLS_MANAGER_ADDRESS = keccak256("ZKTLS_MANAGER_ADDRESS");
 }

@@ -116,5 +116,14 @@ contract ZkTLSGateway is Initializable, UUPSUpgradeable, OwnableUpgradeable {
         chargeGas(client, gas, proverId_, maxGasPrice_, publicValues.length);
     }
 
+    function registerProver(bytes32 proverId_, address verifier_, address submitter_, address beneficiary_)
+        public
+        onlyOwner
+    {
+        proverVerifierAddress[proverId_] = verifier_;
+        proverSubmitterAddress[proverId_] = submitter_;
+        proverBeneficiaryAddress[proverId_] = beneficiary_;
+    }
+
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 }
