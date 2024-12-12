@@ -70,13 +70,13 @@ contract ZkTLSGateway is Initializable, UUPSUpgradeable, OwnableUpgradeable {
 
     function deliverResponse(
         bytes calldata proof_,
-        bytes32 responseId_,
         bytes32 proverId_,
+        bytes32 responseId_,
         address client_,
         bytes32 dapp_,
         uint256 maxGasPrice_,
         uint256 gasLimit_,
-        bytes[] calldata filteredResponses_
+        bytes calldata responses_
     ) public {
         uint256 gas = gasleft();
 
@@ -91,14 +91,14 @@ contract ZkTLSGateway is Initializable, UUPSUpgradeable, OwnableUpgradeable {
         }
 
         // Verify the proof
-        bytes memory publicValues = abi.encode(responseId_, dapp_, filteredResponses_);
+        bytes memory publicValues = abi.encode(responseId_, client_, dapp_, maxGasPrice_, gasLimit_, responses_);
         IProofVerifier(proverVerifierAddress[proverId_]).verifyProof(publicValues, proof_);
 
         // Call the dApp
         address dAppAddress = client.dAppKeyToAddress(dapp_);
         if (dAppAddress != address(0)) {
             (bool success, bytes memory data) = dAppAddress.call{gas: gasLimit_}(
-                abi.encodeCall(IZkTLSDAppCallback.deliveryResponse, (responseId_, filteredResponses_))
+                abi.encodeCall(IZkTLSDAppCallback.deliveryResponse, (responseId_, responses_))
             );
 
             // bubble up the error if the callback fails
