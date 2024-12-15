@@ -74,8 +74,8 @@ contract ZkTLSGateway is Initializable, UUPSUpgradeable, OwnableUpgradeable {
         bytes32 responseId_,
         address client_,
         bytes32 dapp_,
-        uint256 maxGasPrice_,
-        uint256 gasLimit_,
+        uint64 maxGasPrice_,
+        uint64 gasLimit_,
         bytes calldata responses_
     ) public {
         uint256 gas = gasleft();
