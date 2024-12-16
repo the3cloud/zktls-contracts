@@ -6,8 +6,6 @@ import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/U
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {AccessManagerUpgradeable} from "@openzeppelin/contracts-upgradeable/access/manager/AccessManagerUpgradeable.sol";
 
-import {AddressRegisterLib} from "./lib/AddressRegisterLib.sol";
-import {AddressRegister} from "./AddressRegister.sol";
 import {Create2Deployer} from "./Create2Deployer.sol";
 import {ZkTLSClient} from "./ZkTLSClient.sol";
 
@@ -18,39 +16,49 @@ contract ZkTLSManager is Initializable, UUPSUpgradeable, OwnableUpgradeable {
     /// @notice ClientManager beacon address
     address public clientManagerBeacon;
 
-    /// @notice Register
-    AddressRegister public register;
+    Create2Deployer public create2Deployer;
+
+    address public withdrawer;
+
+    address public gateway;
 
     /// @notice Is registered client
     mapping(address => bool) public isRegisteredClient;
 
-    function initialize(address owner_, address register_) public initializer {
+    function initialize(address owner_, address create2Deployer_, address withdrawer_, address gateway_)
+        public
+        initializer
+    {
         __Ownable_init(owner_);
         __UUPSUpgradeable_init();
 
-        register = AddressRegister(register_);
+        create2Deployer = Create2Deployer(create2Deployer_);
+        withdrawer = withdrawer_;
+        gateway = gateway_;
     }
 
     event ClientRegistered(address client, address clientManager);
 
     function registerClient(bytes32 salt_, address owner_) public returns (address clientManager, address client) {
-        address create2Deployer = register.registeredAddress(AddressRegisterLib.CREATE2_DEPLOYER_ADDRESS);
-
-        Create2Deployer deployer = Create2Deployer(create2Deployer);
-
-        clientManager = deployer.deploy(
+        clientManager = create2Deployer.deploy(
             salt_,
             type(AccessManagerUpgradeable).creationCode,
             abi.encodeCall(AccessManagerUpgradeable.initialize, (owner_))
         );
 
-        client = deployer.deploy(
-            salt_, type(ZkTLSClient).creationCode, abi.encodeCall(ZkTLSClient.initialize, (address(register), owner_))
+        client = create2Deployer.deploy(
+            salt_,
+            type(ZkTLSClient).creationCode,
+            abi.encodeCall(ZkTLSClient.initialize, (gateway, address(this), clientManager))
         );
 
         isRegisteredClient[client] = true;
 
         emit ClientRegistered(client, clientManager);
+    }
+
+    function setWithdrawer(address withdrawer_) public onlyOwner {
+        withdrawer = withdrawer_;
     }
 
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}

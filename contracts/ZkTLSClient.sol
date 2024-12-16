@@ -7,21 +7,22 @@ import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 
-import {AddressRegisterLib} from "./lib/AddressRegisterLib.sol";
-import {AddressRegister} from "./AddressRegister.sol";
+import {ZkTLSManager} from "./ZkTLSManager.sol";
 
 contract ZkTLSClient is Initializable, AccessManagedUpgradeable {
     using Address for address payable;
 
-    AddressRegister public register;
+    address public gateway;
+    ZkTLSManager public manager;
 
     mapping(bytes32 => address) public dAppKeyToAddress;
     mapping(bytes32 => bool) public isDAppKeyRegistered;
 
-    function initialize(address register_, address admin_) public initializer {
+    function initialize(address gateway_, address manager_, address admin_) public initializer {
         __AccessManaged_init(admin_);
 
-        register = AddressRegister(register_);
+        gateway = gateway_;
+        manager = ZkTLSManager(manager_);
     }
 
     error DAppKeyAlreadyRegistered();
@@ -35,16 +36,16 @@ contract ZkTLSClient is Initializable, AccessManagedUpgradeable {
         dAppKeyToAddress[dAppKey_] = dAppAddress_;
     }
 
-    error OnlySuperAdmin();
+    error OnlyWithdrawer();
 
-    modifier onlySuperAdmin() {
-        if (msg.sender != register.registeredAddress(AddressRegisterLib.SUPER_ADMIN_ADDRESS)) {
-            revert OnlySuperAdmin();
+    modifier onlyWithdrawer() {
+        if (msg.sender != manager.withdrawer()) {
+            revert OnlyWithdrawer();
         }
         _;
     }
 
-    function withdrawToken(address token_, address payable to_, uint256 amount_) public onlySuperAdmin {
+    function withdrawToken(address token_, address payable to_, uint256 amount_) public onlyWithdrawer {
         if (token_ == address(0)) {
             to_.sendValue(amount_);
         } else {
@@ -56,7 +57,7 @@ contract ZkTLSClient is Initializable, AccessManagedUpgradeable {
 
     modifier onlyService() {
         // We can add other service in future.
-        if (msg.sender != register.registeredAddress(AddressRegisterLib.ZKTLS_GATEWAY_ADDRESS)) {
+        if (msg.sender != gateway) {
             revert OnlyService();
         }
         _;
