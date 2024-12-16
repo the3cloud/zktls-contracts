@@ -7,7 +7,7 @@ import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Own
 
 import {IProofVerifier} from "./interfaces/IProofVerifier.sol";
 import {ZkTLSClient} from "./ZkTLSClient.sol";
-import {IZkTLSDAppCallback} from "./interfaces/IDZkTLSAppCallback.sol";
+import {IZkTLSDAppCallback} from "./interfaces/IZkTLSAppCallback.sol";
 
 contract ZkTLSGateway is Initializable, UUPSUpgradeable, OwnableUpgradeable {
     /// @notice Mapping of ProverID to verifier address
