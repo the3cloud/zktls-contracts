@@ -56,7 +56,14 @@ contract Deploy is Script, UpgradeableDeployer {
             type(ZkTLSManager).creationCode,
             abi.encodeCall(
                 ZkTLSManager.initialize,
-                (deployConfig.ownerAddress, address(deployer), deployConfig.withdrawerAddress, zkTLSGatewayAddress)
+                (
+                    deployConfig.ownerAddress,
+                    address(deployer),
+                    deployConfig.withdrawerAddress,
+                    zkTLSGatewayAddress,
+                    zkTLSClientBeaconAddress,
+                    accessManagerBeaconAddress
+                )
             )
         );
         console.log("ZkTLSManager deployed at", zkTLSManagerAddress);

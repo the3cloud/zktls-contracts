@@ -25,16 +25,22 @@ contract ZkTLSManager is Initializable, UUPSUpgradeable, OwnableUpgradeable {
     /// @notice Is registered client
     mapping(address => bool) public isRegisteredClient;
 
-    function initialize(address owner_, address create2Deployer_, address withdrawer_, address gateway_)
-        public
-        initializer
-    {
+    function initialize(
+        address owner_,
+        address create2Deployer_,
+        address withdrawer_,
+        address gateway_,
+        address clientBeacon_,
+        address clientManagerBeacon_
+    ) public initializer {
         __Ownable_init(owner_);
         __UUPSUpgradeable_init();
 
         create2Deployer = Create2Deployer(create2Deployer_);
         withdrawer = withdrawer_;
         gateway = gateway_;
+        clientBeacon = clientBeacon_;
+        clientManagerBeacon = clientManagerBeacon_;
     }
 
     event ClientRegistered(address client, address clientManager);
