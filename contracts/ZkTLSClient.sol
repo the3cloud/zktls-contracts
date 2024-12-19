@@ -27,6 +27,8 @@ contract ZkTLSClient is Initializable, AccessManagedUpgradeable {
 
     error DAppKeyAlreadyRegistered();
 
+    event DAppAdded(bytes32 indexed dAppKey, address indexed dAppAddress);
+
     function addDApp(bytes32 dAppKey_, address dAppAddress_) public restricted {
         if (isDAppKeyRegistered[dAppKey_]) {
             revert DAppKeyAlreadyRegistered();
@@ -34,6 +36,8 @@ contract ZkTLSClient is Initializable, AccessManagedUpgradeable {
 
         isDAppKeyRegistered[dAppKey_] = true;
         dAppKeyToAddress[dAppKey_] = dAppAddress_;
+
+        emit DAppAdded(dAppKey_, dAppAddress_);
     }
 
     error OnlyWithdrawer();
@@ -45,12 +49,16 @@ contract ZkTLSClient is Initializable, AccessManagedUpgradeable {
         _;
     }
 
+    event TokenWithdrawn(address indexed token, address indexed to, uint256 amount);
+
     function withdrawToken(address token_, address payable to_, uint256 amount_) public onlyWithdrawer {
         if (token_ == address(0)) {
             to_.sendValue(amount_);
         } else {
             IERC20(token_).transfer(to_, amount_);
         }
+
+        emit TokenWithdrawn(token_, to_, amount_);
     }
 
     error OnlyService();
@@ -63,6 +71,8 @@ contract ZkTLSClient is Initializable, AccessManagedUpgradeable {
         _;
     }
 
+    event TokenCharged(address indexed token, address indexed to, uint256 amount);
+
     function chargeToken(address[] calldata tokens_, address payable to_, uint256[] calldata amounts_)
         public
         onlyService
@@ -73,7 +83,19 @@ contract ZkTLSClient is Initializable, AccessManagedUpgradeable {
             } else {
                 IERC20(tokens_[i]).transfer(to_, amounts_[i]);
             }
+
+            emit TokenCharged(tokens_[i], to_, amounts_[i]);
         }
+    }
+
+    error DAppKeyNotRegistered();
+
+    function getDAppAddress(bytes32 dAppKey_) public view returns (address) {
+        if (!isDAppKeyRegistered[dAppKey_]) {
+            revert DAppKeyNotRegistered();
+        }
+
+        return dAppKeyToAddress[dAppKey_];
     }
 
     receive() external payable {}

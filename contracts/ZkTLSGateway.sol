@@ -68,6 +68,9 @@ contract ZkTLSGateway is Initializable, UUPSUpgradeable, OwnableUpgradeable {
         client_.chargeToken(tokens_, payable(beneficiary), paymentVerifyFees_);
     }
 
+    event ResponseDeliveredTo(bytes32 indexed responseId, address indexed client, address indexed dApp);
+    event ResponseDeliveredData(bytes32 indexed responseId, bytes32 indexed proverId, bytes proof, bytes publicValues);
+
     function deliverResponse(
         bytes calldata proof_,
         bytes32 proverId_,
@@ -93,9 +96,24 @@ contract ZkTLSGateway is Initializable, UUPSUpgradeable, OwnableUpgradeable {
         // Verify the proof
         bytes memory publicValues = abi.encode(responseId_, client_, dapp_, maxGasPrice_, gasLimit_, responses_);
         IProofVerifier(proverVerifierAddress[proverId_]).verifyProof(publicValues, proof_);
+        emit ResponseDeliveredData(responseId_, proverId_, proof_, publicValues);
 
         // Call the dApp
-        address dAppAddress = client.dAppKeyToAddress(dapp_);
+        address dAppAddress = callDApp(client, dapp_, gasLimit_, responseId_, responses_);
+
+        emit ResponseDeliveredTo(responseId_, client_, dAppAddress);
+
+        chargeGas(client, gas, proverId_, maxGasPrice_, publicValues.length);
+    }
+
+    function callDApp(
+        ZkTLSClient client,
+        bytes32 dAppKey_,
+        uint64 gasLimit_,
+        bytes32 responseId_,
+        bytes calldata responses_
+    ) private returns (address dAppAddress) {
+        dAppAddress = client.getDAppAddress(dAppKey_);
         if (dAppAddress != address(0)) {
             (bool success, bytes memory data) = dAppAddress.call{gas: gasLimit_}(
                 abi.encodeCall(IZkTLSDAppCallback.deliveryResponse, (responseId_, responses_))
@@ -112,8 +130,6 @@ contract ZkTLSGateway is Initializable, UUPSUpgradeable, OwnableUpgradeable {
                 }
             }
         }
-
-        chargeGas(client, gas, proverId_, maxGasPrice_, publicValues.length);
     }
 
     function registerProver(bytes32 proverId_, address verifier_, address submitter_, address beneficiary_)

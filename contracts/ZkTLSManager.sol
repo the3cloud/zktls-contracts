@@ -5,6 +5,7 @@ import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Ini
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {AccessManagerUpgradeable} from "@openzeppelin/contracts-upgradeable/access/manager/AccessManagerUpgradeable.sol";
+import {BeaconProxy} from "@openzeppelin/contracts/proxy/beacon/BeaconProxy.sol";
 
 import {Create2Deployer} from "./Create2Deployer.sol";
 import {ZkTLSClient} from "./ZkTLSClient.sol";
@@ -43,19 +44,19 @@ contract ZkTLSManager is Initializable, UUPSUpgradeable, OwnableUpgradeable {
         clientManagerBeacon = clientManagerBeacon_;
     }
 
-    event ClientRegistered(address client, address clientManager);
+    event ClientRegistered(address indexed client, address indexed clientManager);
 
     function registerClient(bytes32 salt_, address owner_) public returns (address clientManager, address client) {
         clientManager = create2Deployer.deploy(
             salt_,
-            type(AccessManagerUpgradeable).creationCode,
-            abi.encodeCall(AccessManagerUpgradeable.initialize, (owner_))
+            type(BeaconProxy).creationCode,
+            abi.encode(clientManagerBeacon, abi.encodeCall(AccessManagerUpgradeable.initialize, (owner_)))
         );
 
         client = create2Deployer.deploy(
             salt_,
-            type(ZkTLSClient).creationCode,
-            abi.encodeCall(ZkTLSClient.initialize, (gateway, address(this), clientManager))
+            type(BeaconProxy).creationCode,
+            abi.encode(clientBeacon, abi.encodeCall(ZkTLSClient.initialize, (gateway, address(this), clientManager)))
         );
 
         isRegisteredClient[client] = true;

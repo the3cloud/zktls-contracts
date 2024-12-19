@@ -27,7 +27,6 @@ contract Config {
         address ownerAddress;
         address withdrawerAddress;
         address paymentTokenAddress;
-        uint256 paddingGas;
         address create2DeployerAddress;
         address faucetAddress;
     }
@@ -45,7 +44,6 @@ contract Config {
         deployConfig.ownerAddress = stdToml.readAddress(file, "$.deploy.owner_address");
         deployConfig.withdrawerAddress = stdToml.readAddress(file, "$.deploy.withdrawer_address");
         deployConfig.paymentTokenAddress = stdToml.readAddress(file, "$.deploy.payment_token_address");
-        deployConfig.paddingGas = stdToml.readUint(file, "$.deploy.padding_gas");
         deployConfig.create2DeployerAddress = stdToml.readAddress(file, "$.deploy.create2_deployer_address");
         deployConfig.faucetAddress = stdToml.readAddress(file, "$.deploy.faucet_address");
     }
