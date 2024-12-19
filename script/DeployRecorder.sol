@@ -40,7 +40,6 @@ contract DeployRecorder is Config {
         /// Rebuild deploy config
         stdToml.serialize("deploy", "owner_address", deployConfig.ownerAddress);
         stdToml.serialize("deploy", "payment_token_address", deployConfig.paymentTokenAddress);
-        stdToml.serialize("deploy", "padding_gas", deployConfig.paddingGas);
         string memory deployStr =
             stdToml.serialize("deploy", "create2_deployer_address", deployConfig.create2DeployerAddress);
         stdToml.serialize("deploy", "faucet_address", deployConfig.faucetAddress);
