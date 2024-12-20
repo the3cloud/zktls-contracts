@@ -51,10 +51,11 @@ contract ZkTLSGateway is Initializable, UUPSUpgradeable, OwnableUpgradeable {
 
     error InvalidGasVerifyFeesNumber();
 
-    event TokenCharged(address indexed client, address indexed to);
+    event TokenCharged(address indexed client, bytes32 indexed proverId, bytes32 indexed responseId);
 
     function chargeGas(
         ZkTLSClient client_,
+        bytes32 responseId_,
         uint256 gas_,
         bytes32 proverId_,
         uint256 maxGasPrice_,
@@ -69,7 +70,7 @@ contract ZkTLSGateway is Initializable, UUPSUpgradeable, OwnableUpgradeable {
 
         client_.chargeToken(tokens_, payable(beneficiary), paymentVerifyFees_);
 
-        emit TokenCharged(address(client_), beneficiary);
+        emit TokenCharged(address(client_), proverId_, responseId_);
     }
 
     event ResponseDeliveredTo(bytes32 indexed responseId, address indexed client, address indexed dApp);
@@ -107,7 +108,7 @@ contract ZkTLSGateway is Initializable, UUPSUpgradeable, OwnableUpgradeable {
 
         emit ResponseDeliveredTo(responseId_, client_, dAppAddress);
 
-        chargeGas(client, gas, proverId_, maxGasPrice_, publicValues.length);
+        chargeGas(client, responseId_, gas, proverId_, maxGasPrice_, publicValues.length);
     }
 
     function callDApp(
