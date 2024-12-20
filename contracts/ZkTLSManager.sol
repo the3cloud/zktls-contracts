@@ -44,7 +44,7 @@ contract ZkTLSManager is Initializable, UUPSUpgradeable, OwnableUpgradeable {
         clientManagerBeacon = clientManagerBeacon_;
     }
 
-    event ClientRegistered(address indexed client, address indexed clientManager);
+    event ClientRegistered(address indexed clientManager, address indexed client);
 
     function registerClient(bytes32 salt_, address owner_) public returns (address clientManager, address client) {
         clientManager = create2Deployer.deploy(
@@ -61,7 +61,25 @@ contract ZkTLSManager is Initializable, UUPSUpgradeable, OwnableUpgradeable {
 
         isRegisteredClient[client] = true;
 
-        emit ClientRegistered(client, clientManager);
+        emit ClientRegistered(clientManager, client);
+    }
+
+    function computeClientAddress(bytes32 salt_, address owner_)
+        public
+        view
+        returns (address clientManager, address client)
+    {
+        clientManager = create2Deployer.computeAddress(
+            salt_,
+            type(BeaconProxy).creationCode,
+            abi.encode(clientManagerBeacon, abi.encodeCall(AccessManagerUpgradeable.initialize, (owner_)))
+        );
+
+        client = create2Deployer.computeAddress(
+            salt_,
+            type(BeaconProxy).creationCode,
+            abi.encode(clientBeacon, abi.encodeCall(ZkTLSClient.initialize, (gateway, address(this), clientManager)))
+        );
     }
 
     function setWithdrawer(address withdrawer_) public onlyOwner {
