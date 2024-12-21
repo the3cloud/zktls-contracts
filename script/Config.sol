@@ -9,7 +9,7 @@ import {Forge} from "./Forge.sol";
 
 contract Config {
     struct ImplementationConfig {
-        address ZkTLSAccount;
+        address ZkTLSClient;
         address ZkTLSGateway;
         address ZkTLSManager;
     }
@@ -20,13 +20,13 @@ contract Config {
     }
 
     struct BeaconConfig {
-        address ZkTLSAccount;
+        address ZkTLSClient;
     }
 
     struct DeployConfig {
         address ownerAddress;
+        address withdrawerAddress;
         address paymentTokenAddress;
-        uint256 paddingGas;
         address create2DeployerAddress;
         address faucetAddress;
     }
@@ -42,8 +42,8 @@ contract Config {
         string memory file = vm.readFile(configPath());
 
         deployConfig.ownerAddress = stdToml.readAddress(file, "$.deploy.owner_address");
+        deployConfig.withdrawerAddress = stdToml.readAddress(file, "$.deploy.withdrawer_address");
         deployConfig.paymentTokenAddress = stdToml.readAddress(file, "$.deploy.payment_token_address");
-        deployConfig.paddingGas = stdToml.readUint(file, "$.deploy.padding_gas");
         deployConfig.create2DeployerAddress = stdToml.readAddress(file, "$.deploy.create2_deployer_address");
         deployConfig.faucetAddress = stdToml.readAddress(file, "$.deploy.faucet_address");
     }
@@ -53,9 +53,9 @@ contract Config {
 
         string memory file = vm.readFile(configPath());
 
-        implementationConfig.ZkTLSAccount = stdToml.readAddress(file, "$.implementation.ZkTLSAccount");
-        implementationConfig.ZkTLSGateway = stdToml.readAddress(file, "$.implementation.ZkTLSGateway");
-        implementationConfig.ZkTLSManager = stdToml.readAddress(file, "$.implementation.ZkTLSManager");
+        implementationConfig.ZkTLSClient = stdToml.readAddress(file, "$.implementation.zktls_client");
+        implementationConfig.ZkTLSGateway = stdToml.readAddress(file, "$.implementation.zktls_gateway");
+        implementationConfig.ZkTLSManager = stdToml.readAddress(file, "$.implementation.zktls_manager");
     }
 
     function getProxyConfig() public view returns (ProxyConfig memory proxyConfig) {
@@ -63,8 +63,8 @@ contract Config {
 
         string memory file = vm.readFile(configPath());
 
-        proxyConfig.ZkTLSGateway = stdToml.readAddress(file, "$.proxy.ZkTLSGateway");
-        proxyConfig.ZkTLSManager = stdToml.readAddress(file, "$.proxy.ZkTLSManager");
+        proxyConfig.ZkTLSGateway = stdToml.readAddress(file, "$.proxy.zktls_gateway");
+        proxyConfig.ZkTLSManager = stdToml.readAddress(file, "$.proxy.zktls_manager");
     }
 
     function getBeaconConfig() public view returns (BeaconConfig memory beaconConfig) {
@@ -72,6 +72,6 @@ contract Config {
 
         string memory file = vm.readFile(configPath());
 
-        beaconConfig.ZkTLSAccount = stdToml.readAddress(file, "$.beacon.ZkTLSAccount");
+        beaconConfig.ZkTLSClient = stdToml.readAddress(file, "$.beacon.zktls_client");
     }
 }
