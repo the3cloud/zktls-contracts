@@ -1,0 +1,18 @@
+[deploy]
+create2_deployer_address = "0xb2200cE5d635cFf6a428D7de45908D87c8363DE9"
+withdrawer_address = "0xA2fBC0f708821080B172C55697307dEBBB1022e1"
+owner_address = "0xA2fBC0f708821080B172C55697307dEBBB1022e1"
+payment_token_address = "0x0000000000000000000000000000000000000000"
+faucet_address = "0x0000000000000000000000000000000000000000"
+
+  ZkTLSGateway Implementation deployed at 0xa3c10cce1539504DD84b3A936e92AA9c5481110e
+  ZkTLSGateway deployed at 0x7db8199cf401812bD333CC481396F4Aa8c0d3be1
+  
+  ZkTLSManager Implementation deployed at 0x5398Cf603b039aC5f333D2123A52F9fb64d1b004
+  ZkTLSManager deployed at 0xedB61D92f0454236e468A83d5Af0192B5BE6df55
+  
+  ZkTLSClient Implementation deployed at 0xAFA6240741CE0d97A7f7749128bCd5B7f8ac56C0
+  ZkTLSClient Beacon deployed at 0xE0fF8AA5A26d3A506a42711D51e9Bb3DACEb2306
+  AccessManager Implementation deployed at 0xbE2a02d01929b9A9884E1154603fa3860f00Ec23
+  AccessManager Beacon deployed at 0xEddAf974e6A0B573fCc048E6013cd0Eeba2e14f2
+ 

@@ -37,12 +37,12 @@ contract DeployRecorder is Config {
             stdToml.serialize("config", '{"deploy": {}, "implementation": {}, "proxy": {}, "beacon": {}}');
         stdToml.write(configStr, path);
 
-        /// Rebuild deploy config
-        stdToml.serialize("deploy", "owner_address", deployConfig.ownerAddress);
-        stdToml.serialize("deploy", "payment_token_address", deployConfig.paymentTokenAddress);
         string memory deployStr =
             stdToml.serialize("deploy", "create2_deployer_address", deployConfig.create2DeployerAddress);
-        stdToml.serialize("deploy", "faucet_address", deployConfig.faucetAddress);
+        deployStr = stdToml.serialize("deploy", "faucet_address", deployConfig.faucetAddress);
+        deployStr = stdToml.serialize("deploy", "owner_address", deployConfig.ownerAddress);
+        deployStr = stdToml.serialize("deploy", "payment_token_address", deployConfig.paymentTokenAddress);
+        deployStr = stdToml.serialize("deploy", "withdrawer_address", deployConfig.withdrawerAddress);
         stdToml.write(deployStr, path, ".deploy");
 
         string memory implementationStr;
