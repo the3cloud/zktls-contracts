@@ -28,7 +28,7 @@ integrity = "0010eaf92913e47289e7ff4a2dab91b40524a6f910a480a15d5f9203de85381d"
 
 [[dependencies]]
 name = "sp1-contracts"
-version = "3.0.0"
-url = "https://github.com/succinctlabs/sp1-contracts/archive/refs/heads/main.zip"
-checksum = "0c29e337a2d49f4b3a47c9858aef6211fdedf9f40f6d4c9ad2c1ea5847dfd05a"
-integrity = "8a9bc2b4d331cd1c6d62156cbcf01cc5b9e1a209fe961135f98e3a58f37a40f9"
+version = "4.0.0"
+url = "https://github.com/succinctlabs/sp1-contracts/archive/refs/tags/v4.0.0.zip"
+checksum = "f44ad2210b56cc2049168f5b3b13471702c4de261bcc557a3a95efc3d4e41055"
+integrity = "8844dfbe5848f01e6a9fdb525f0e3c6bb777b463a8b970caa94eb54ea5f59148"
