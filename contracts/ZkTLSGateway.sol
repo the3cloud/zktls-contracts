@@ -52,9 +52,7 @@ contract ZkTLSGateway is Initializable, UUPSUpgradeable, OwnableUpgradeable {
 
     event TokenCharged(address indexed client, bytes32 indexed proverId, bytes32 indexed responseId);
 
-    function chargeGas(ZkTLSClient client_, bytes32 responseId_, bytes32 proverId_, uint256 publicValuesLength_)
-        private
-    {
+    function chargeGas(ZkTLSClient client_, bytes32 responseId_, bytes32 proverId_) private {
         (address[] memory tokens_, uint256[] memory paymentVerifyFees_) =
             IProofVerifier(proverVerifierAddress[proverId_]).verifyGas();
 
@@ -79,8 +77,6 @@ contract ZkTLSGateway is Initializable, UUPSUpgradeable, OwnableUpgradeable {
         bytes32 publicValuesHash_,
         bytes calldata proof_
     ) public {
-        uint256 gas = gasleft();
-
         // Check if the prover is valid
         checkProver(proverId_);
 
@@ -96,7 +92,7 @@ contract ZkTLSGateway is Initializable, UUPSUpgradeable, OwnableUpgradeable {
         IProofVerifier(proverVerifierAddress[proverId_]).verifyProof(publicValues, proof_);
         emit ResponseDeliveredData(responseId_, proverId_, proof_, publicValues);
 
-        chargeGas(client, responseId_, proverId_, publicValues.length);
+        chargeGas(client, responseId_, proverId_);
     }
 
     function registerProver(bytes32 proverId_, address verifier_, address submitter_, address beneficiary_)
